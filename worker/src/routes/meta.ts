@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from "../types";
-import { getSetting, now } from "../db";
+import { clearDeliveries, getSetting, now } from "../db";
 import { CHANNEL_SCHEMA } from "../channels";
 import { moduleCatalog } from "../automations";
 
@@ -74,6 +74,12 @@ app.get("/deliveries", async (c) => {
     .bind(limit)
     .all();
   return c.json({ deliveries: results });
+});
+
+// Clear all delivery (send) records.
+app.delete("/deliveries", async (c) => {
+  await clearDeliveries(c.env.DB);
+  return c.json({ ok: true });
 });
 
 // Public metadata used to render the dashboard forms.

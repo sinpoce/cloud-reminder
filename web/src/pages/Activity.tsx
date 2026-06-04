@@ -1,16 +1,35 @@
 import { useEffect, useState } from "react";
-import { Activity as ActivityIcon, RefreshCw, CheckCircle2, XCircle } from "lucide-react";
-import { api } from "../lib/api";
+import { Activity as ActivityIcon, RefreshCw, Trash2, CheckCircle2, XCircle } from "lucide-react";
+import { api, ApiError } from "../lib/api";
 import type { Delivery, ChannelType } from "../lib/types";
 import { browserTimezone, formatDateTime, relativeTime } from "../lib/format";
 import { Badge, Button, EmptyState, PageLoader } from "../components/ui";
+import { ConfirmDialog } from "../components/Modal";
 import { ChannelIcon } from "../components/ChannelIcon";
+import { useToast } from "../components/Toast";
 
 export function Activity() {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const toast = useToast();
   const tz = browserTimezone();
+
+  async function onClear() {
+    setClearing(true);
+    try {
+      await api.clearDeliveries();
+      setDeliveries([]);
+      setConfirmClear(false);
+      toast("success", "发送记录已清空");
+    } catch (e) {
+      toast("error", e instanceof ApiError ? e.message : "清空失败");
+    } finally {
+      setClearing(false);
+    }
+  }
 
   const load = (initial = false) => {
     if (!initial) setRefreshing(true);
@@ -34,14 +53,26 @@ export function Activity() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted">最近的推送记录（最多 60 条）。</p>
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={<RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />}
-          onClick={() => load()}
-        >
-          刷新
-        </Button>
+        <div className="flex items-center gap-2">
+          {deliveries.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Trash2 className="h-3.5 w-3.5" />}
+              onClick={() => setConfirmClear(true)}
+            >
+              清空
+            </Button>
+          )}
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />}
+            onClick={() => load()}
+          >
+            刷新
+          </Button>
+        </div>
       </div>
 
       {deliveries.length === 0 ? (
@@ -88,6 +119,15 @@ export function Activity() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmClear}
+        onClose={() => setConfirmClear(false)}
+        onConfirm={onClear}
+        loading={clearing}
+        title="清空发送记录"
+        message="确定清空所有发送记录吗？此操作不可撤销。"
+      />
     </div>
   );
 }

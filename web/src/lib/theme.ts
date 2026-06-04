@@ -1,25 +1,49 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 type Theme = "dark" | "light";
 const KEY = "cr_theme";
 
+function read(): Theme {
+  const saved = localStorage.getItem(KEY);
+  return saved === "dark" || saved === "light" ? saved : "light"; // default light
+}
+
+function apply(t: Theme) {
+  document.documentElement.classList.toggle("dark", t === "dark");
+}
+
+// Single shared theme state so every useTheme() (Layout, Settings, …) stays in
+// sync, and the choice is applied on app load (incl. the login page) + persisted.
+let current: Theme = read();
+if (typeof document !== "undefined") apply(current);
+
+const listeners = new Set<() => void>();
+
 export function getInitialTheme(): Theme {
-  const saved = localStorage.getItem(KEY) as Theme | null;
-  if (saved === "dark" || saved === "light") return saved;
-  return "light"; // default to light; users can switch to dark
+  return current;
+}
+
+export function setTheme(t: Theme) {
+  current = t;
+  localStorage.setItem(KEY, t);
+  apply(t);
+  listeners.forEach((l) => l());
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle("dark", theme === "dark");
-    localStorage.setItem(KEY, theme);
-  }, [theme]);
-
+  const theme = useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      return () => {
+        listeners.delete(cb);
+      };
+    },
+    () => current,
+    () => current,
+  );
   return {
     theme,
-    toggle: () => setTheme((t) => (t === "dark" ? "light" : "dark")),
+    toggle: () => setTheme(current === "dark" ? "light" : "dark"),
+    setTheme,
   };
 }

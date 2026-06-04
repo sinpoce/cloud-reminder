@@ -6,7 +6,6 @@ import {
   LogOut,
   Moon,
   Sun,
-  Server,
   KeyRound,
   Clock,
 } from "lucide-react";
@@ -58,7 +57,6 @@ export function Settings() {
   const { logout } = useAuth();
   const { theme, toggle } = useTheme();
   const toast = useToast();
-  const apiBase = import.meta.env.VITE_API_BASE || "（同源 / 开发代理）";
 
   // Default timezone selector.
   const tzList = (() => {
@@ -190,9 +188,6 @@ export function Settings() {
       </Section>
 
       <Section title="服务">
-        <Row icon={<Server className="h-[18px] w-[18px]" />} title="API 地址" desc="前端连接的 Worker 地址">
-          <code className="max-w-[200px] truncate rounded-lg bg-elevated px-2.5 py-1 text-xs text-fg">{apiBase}</code>
-        </Row>
         <Row icon={<ShieldCheck className="h-[18px] w-[18px]" />} title="服务器时间" desc="用于校验 Cron 调度">
           <span className="text-xs text-muted">{formatDateTime(config.serverTime, browserTimezone())}</span>
         </Row>

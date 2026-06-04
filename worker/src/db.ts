@@ -188,6 +188,10 @@ export async function listDeliveries(db: D1Database, limit = 50): Promise<Delive
   return (results as Record<string, unknown>[]).map(mapDelivery);
 }
 
+export async function clearDeliveries(db: D1Database): Promise<void> {
+  await db.prepare("DELETE FROM deliveries").run();
+}
+
 // ── automations ──────────────────────────────────────────────────────────────
 function mapAutomation(r: Record<string, unknown>): Automation {
   return {

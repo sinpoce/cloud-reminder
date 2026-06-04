@@ -97,6 +97,7 @@ export const api = {
   overview: () => request<Overview>("/api/overview"),
   deliveries: (limit = 40) =>
     request<{ deliveries: Delivery[] }>(`/api/deliveries?limit=${limit}`).then((d) => d.deliveries),
+  clearDeliveries: () => request<{ ok: boolean }>("/api/deliveries", { method: "DELETE" }),
 
   // reminders
   listReminders: () =>

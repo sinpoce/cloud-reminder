@@ -8,7 +8,8 @@ import { sendBark, type BarkConfig } from "./bark";
 
 // Built-in default notification template (event title + content + time).
 // Pre-filled in the dashboard and editable; used when a channel leaves it blank.
-export const DEFAULT_MESSAGE_TEMPLATE = "🔔 {{title}}\n\n{{body}}\n\n🕐 {{time}}";
+export const DEFAULT_MESSAGE_TEMPLATE =
+  "🔔 提醒事项：{{title}}\n\n{{body}}\n\n———————————\n🕐 触发时间：{{time}}\n📡 来自 Cloud Reminder · 自托管提醒服务";
 
 // Built-in HTML email template — a branded card with a SINPOCE footer.
 // Pre-filled in the dashboard and fully editable; {{title}} {{body}} {{time}}.
