@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# cloudflare / wrangler
+.wrangler/
+.dev.vars
+.dev.vars.local
+
+# build output
+dist/
+.vite/
+
+# env
+.env
+.env.*
+!.env.example
+
+# misc
+*.log
+.DS_Store
+
+# editor/agent tooling
+.claude/

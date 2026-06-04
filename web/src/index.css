@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Theme tokens ──────────────────────────────────────────────────────────── */
+:root {
+  --bg: 247 248 251;
+  --surface: 255 255 255;
+  --elevated: 255 255 255;
+  --border: 226 230 238;
+  --muted: 100 109 130;
+  --fg: 22 26 40;
+  --brand: 99 84 233;
+  --brand-soft: 124 110 245;
+}
+
+.dark {
+  --bg: 8 10 18;
+  --surface: 16 18 29;
+  --elevated: 23 26 40;
+  --border: 38 42 60;
+  --muted: 148 156 180;
+  --fg: 232 235 245;
+  --brand: 139 122 252;
+  --brand-soft: 139 122 252;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::selection {
+    background: rgb(var(--brand) / 0.28);
+  }
+  /* Scrollbars */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--muted) / 0.25);
+    border-radius: 99px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--muted) / 0.45);
+    background-clip: content-box;
+  }
+  input,
+  textarea,
+  select {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-border bg-surface shadow-soft;
+  }
+  .glass {
+    background: rgb(var(--surface) / 0.7);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+  }
+  .field {
+    @apply w-full rounded-xl border border-border bg-elevated/60 px-3.5 py-2.5 text-sm
+           text-fg placeholder:text-muted/60 transition
+           focus:border-brand/60 focus:ring-4 focus:ring-brand/15;
+  }
+  .label {
+    @apply mb-1.5 block text-[13px] font-medium text-fg/80;
+  }
+  .hint {
+    @apply mt-1.5 text-xs text-muted;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+  /* subtle dotted grid used as a page backdrop */
+  .grid-bg {
+    background-image: radial-gradient(rgb(var(--muted) / 0.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+/* Aurora glow used behind the login screen */
+.aurora {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(40% 40% at 20% 25%, rgb(var(--brand) / 0.35), transparent 60%),
+    radial-gradient(35% 35% at 80% 20%, rgb(56 189 248 / 0.28), transparent 60%),
+    radial-gradient(45% 45% at 65% 80%, rgb(168 85 247 / 0.3), transparent 60%);
+  filter: blur(70px);
+  animation: drift 18s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  from {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(3%, 2%, 0) scale(1.08);
+  }
+}

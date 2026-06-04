@@ -1,0 +1,5 @@
+# Copy to `.dev.vars` for local development (`wrangler dev` loads it automatically).
+# Both are OPTIONAL — the password defaults to "admin" and the JWT secret is
+# auto-generated & stored in D1. Override here / via `wrangler secret put` for production.
+ADMIN_PASSWORD=admin
+JWT_SECRET=any-long-random-string-for-local-dev

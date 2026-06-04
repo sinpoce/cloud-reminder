@@ -1,0 +1,44 @@
+{
+  // ───────────────────────────────────────────────────────────────────────────
+  // UNIFIED deploy config: one Worker that serves the built SPA (Static Assets)
+  // + the API + the cron. This is what the "Deploy to Cloudflare" button uses.
+  // Local dev still uses the split setup (worker/ + web/); see README.
+  // ───────────────────────────────────────────────────────────────────────────
+  "name": "cloud-reminder",
+  "main": "worker/src/index.ts",
+  "compatibility_date": "2024-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Build the frontend before deploy (the button runs this).
+  "build": {
+    "command": "npm --prefix worker install && npm --prefix web install && npm --prefix web run build"
+  },
+
+  // Serve the built SPA; unknown routes fall back to index.html (client routing).
+  "assets": {
+    "directory": "web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+
+  // Compile the QuickJS engine WASM at build time.
+  "rules": [{ "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": true }],
+
+  // Reminder + automation dispatcher, every minute.
+  "triggers": { "crons": ["* * * * *"] },
+
+  // D1 — the button provisions this; the schema self-initialises on first run.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "cloud_reminder", "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID" }
+  ],
+
+  "vars": {
+    // Same-origin (the SPA is served by this Worker), so "*" is safe here.
+    "ALLOWED_ORIGINS": "*",
+    "DEFAULT_TIMEZONE": "Asia/Shanghai"
+  }
+
+  // Secrets to set after deploy (dashboard → Settings → Variables, or wrangler):
+  //   ADMIN_PASSWORD   login password
+  //   JWT_SECRET       long random string  (openssl rand -base64 32)
+}

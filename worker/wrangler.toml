@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Cloud Reminder — Cloudflare Worker (API + Cron)
+# ─────────────────────────────────────────────────────────────────────────────
+name = "cloud-reminder-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Run the reminder dispatcher every minute.
+[triggers]
+crons = ["* * * * *"]
+
+# D1 database binding. Create it with:
+#   wrangler d1 create cloud_reminder
+# then paste the returned database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "cloud_reminder"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+[vars]
+# Comma-separated list of origins allowed to call this API (your Pages site).
+# Use "*" only for local testing.
+ALLOWED_ORIGINS = "http://localhost:5173"
+# Default timezone applied when a reminder doesn't specify one (IANA name).
+DEFAULT_TIMEZONE = "Asia/Shanghai"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Secrets (DO NOT put these here — set with `wrangler secret put <NAME>`):
+#   ADMIN_PASSWORD   The login password for the dashboard.
+#   JWT_SECRET       A long random string used to sign session tokens.
+# ─────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,16 @@
+{
+  "name": "cloud-reminder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Self-hosted reminder service on Cloudflare Pages + Workers (Telegram / 企业微信 / 飞书 / Webhook)",
+  "scripts": {
+    "install:all": "npm --prefix worker install && npm --prefix web install",
+    "dev:worker": "npm --prefix worker run dev",
+    "dev:web": "npm --prefix web run dev",
+    "build:web": "npm --prefix web run build",
+    "deploy:worker": "npm --prefix worker run deploy",
+    "db:init": "npm --prefix worker run db:init",
+    "db:init:remote": "npm --prefix worker run db:init:remote",
+    "typecheck": "npm --prefix worker run typecheck && npm --prefix web run typecheck"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "cloud-reminder-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloud Reminder API + Cron worker (Cloudflare Workers)",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev -c wrangler.toml",
+    "deploy": "wrangler deploy -c wrangler.toml",
+    "db:init": "wrangler d1 execute cloud_reminder -c wrangler.toml --local --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute cloud_reminder -c wrangler.toml --remote --file=./schema.sql",
+    "tail": "wrangler tail -c wrangler.toml",
+    "typecheck": "tsc --noEmit",
+    "vendor:wasm": "node -e \"require('fs').copyFileSync('node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm','src/automations/quickjs.wasm')\""
+  },
+  "dependencies": {
+    "hono": "^4.6.14",
+    "quickjs-emscripten": "^0.32.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241218.0",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.0.0"
+  }
+}
