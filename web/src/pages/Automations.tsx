@@ -633,15 +633,25 @@ function AutomationModal({
               {fld.label}
               {fld.required && <span className="ml-1 text-rose-400">*</span>}
             </label>
-            <input
-              className={cn("field", fld.secret && "font-mono text-[13px]")}
-              type={fld.type === "number" ? "number" : "text"}
-              value={form[fld.key] ?? ""}
-              onChange={(e) => setForm((s) => ({ ...s, [fld.key]: e.target.value }))}
-              placeholder={fld.placeholder}
-              autoComplete="off"
-              spellCheck={false}
-            />
+            {fld.type === "textarea" ? (
+              <textarea
+                className="field min-h-[88px] resize-y font-mono text-[13px]"
+                value={form[fld.key] ?? ""}
+                onChange={(e) => setForm((s) => ({ ...s, [fld.key]: e.target.value }))}
+                placeholder={fld.placeholder}
+                spellCheck={false}
+              />
+            ) : (
+              <input
+                className={cn("field", fld.secret && "font-mono text-[13px]")}
+                type={fld.type === "number" ? "number" : "text"}
+                value={form[fld.key] ?? ""}
+                onChange={(e) => setForm((s) => ({ ...s, [fld.key]: e.target.value }))}
+                placeholder={fld.placeholder}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            )}
             {fld.hint && <p className="hint">{fld.hint}</p>}
           </div>
         ))}

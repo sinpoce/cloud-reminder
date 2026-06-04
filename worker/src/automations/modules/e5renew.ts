@@ -171,7 +171,6 @@ const e5RenewModule: AutomationModule = {
   label: "Microsoft 365 E5 续订",
   description: "用 OAuth Refresh Token 登录并定期调用 Microsoft Graph API 模拟活跃，保活 E5 开发者订阅。",
   icon: "activity",
-  docsUrl: "https://github.com/sinpoce/cloud-reminder/blob/main/docs/e5-renew.md",
   fields: [
     { key: "client_id", label: "Client ID", required: true, placeholder: "Azure AD 应用(客户端) ID", hint: "Azure 门户 → 应用注册里的「应用程序(客户端) ID」" },
     { key: "client_secret", label: "Client Secret（机密客户端填）", required: false, secret: true, placeholder: "公共客户端可留空" },
