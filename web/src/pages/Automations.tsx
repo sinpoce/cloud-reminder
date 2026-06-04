@@ -18,6 +18,7 @@ import {
   MinusCircle,
   RefreshCw,
   RotateCw,
+  LogIn,
   ChevronRight,
   X,
 } from "lucide-react";
@@ -479,7 +480,61 @@ function AutomationModal({
   const [notify, setNotify] = useState<string[]>(automation?.notify_channel_ids ?? []);
   const [enabled, setEnabled] = useState(automation?.enabled ?? true);
   const [autoOff, setAutoOff] = useState<string[]>(() => toStrList(automation?.config?.auto_off));
+  const [account, setAccount] = useState("");
+  const [e5LoggingIn, setE5LoggingIn] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // E5: open the Microsoft login popup, then auto-fill the refresh_token.
+  async function e5Login() {
+    if (!form.client_id?.trim()) return toast("error", "请先填写 Client ID");
+    setE5LoggingIn(true);
+    try {
+      const redirect_uri = `${window.location.origin}/api/e5/callback`;
+      const { authUrl, state } = await api.e5AuthStart({
+        client_id: form.client_id.trim(),
+        client_secret: form.client_secret,
+        tenant: form.tenant,
+        redirect_uri,
+        login_hint: account.trim() || undefined,
+      });
+      const popup = window.open(authUrl, "e5-login", "width=600,height=760");
+      let timer: ReturnType<typeof setInterval>;
+      const handler = async (ev: MessageEvent) => {
+        if (!ev.data || ev.data.type !== "e5-oauth" || ev.data.state !== state) return;
+        window.removeEventListener("message", handler);
+        clearInterval(timer);
+        if (!ev.data.ok) {
+          toast("error", "授权失败：" + (ev.data.msg || ""));
+          setE5LoggingIn(false);
+          return;
+        }
+        try {
+          const r = await api.e5AuthResult(state);
+          if (r.refresh_token) {
+            setForm((f) => ({ ...f, refresh_token: r.refresh_token as string, ...(r.tenant ? { tenant: r.tenant } : {}) }));
+            toast("success", "登录成功，已自动填入 Refresh Token");
+          } else {
+            toast("error", r.error || "获取令牌失败");
+          }
+        } catch (err) {
+          toast("error", err instanceof ApiError ? err.message : "获取令牌失败");
+        } finally {
+          setE5LoggingIn(false);
+        }
+      };
+      window.addEventListener("message", handler);
+      timer = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(timer);
+          window.removeEventListener("message", handler);
+          setE5LoggingIn(false);
+        }
+      }, 1000);
+    } catch (err) {
+      toast("error", err instanceof ApiError ? err.message : "发起登录失败");
+      setE5LoggingIn(false);
+    }
+  }
 
   async function save() {
     if (!name.trim()) return toast("error", "请填写名称");
@@ -539,6 +594,38 @@ function AutomationModal({
           <label className="label">名称</label>
           <input className="field" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
+
+        {module.key === "e5_renew" && (
+          <div className="space-y-3 rounded-xl border border-sky-500/25 bg-sky-500/[0.06] p-4">
+            <p className="flex items-center gap-2 text-sm font-semibold text-fg">
+              <LogIn className="h-4 w-4 text-sky-400" /> 微软账号登录授权（推荐）
+            </p>
+            <p className="text-xs leading-relaxed text-muted">
+              填好下方 <b>Client ID</b> 后，在此输入微软账号并点登录：会弹出微软授权页，登录后<b>自动获取并填入 Refresh Token</b>，无需手动用 rclone。
+            </p>
+            <input
+              className="field"
+              value={account}
+              onChange={(e) => setAccount(e.target.value)}
+              placeholder="微软账号，如 you@xxx.onmicrosoft.com"
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={e5LoggingIn}
+              icon={<LogIn className="h-4 w-4" />}
+              onClick={e5Login}
+            >
+              用微软账号登录
+            </Button>
+            <p className="hint">
+              需先在 Azure 应用的「重定向 URI」中加入：
+              <code className="rounded bg-elevated px-1">{`${window.location.origin}/api/e5/callback`}</code>
+            </p>
+          </div>
+        )}
 
         {module.fields.map((fld) => (
           <div key={fld.key}>

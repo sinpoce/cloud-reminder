@@ -81,6 +81,67 @@ app.post("/api/login", async (c) => {
   return c.json({ token });
 });
 
+// ── Microsoft 365 E5 OAuth callback (public — Microsoft redirects here, no JWT) ─
+function e5ResultPage(ok: boolean, msg: string, state = ""): string {
+  return `<!doctype html><html><head><meta charset="utf-8"><title>E5 授权</title></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f14;color:#e6e6ea;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
+<div style="text-align:center;padding:24px">
+<p style="font-size:18px;margin:0 0 8px">${ok ? "✅" : "❌"} ${msg}</p>
+<p style="color:#8a8a96;font-size:13px;margin:0">此窗口将自动关闭…</p>
+</div>
+<script>
+try{window.opener&&window.opener.postMessage({type:"e5-oauth",ok:${ok},state:${JSON.stringify(state)},msg:${JSON.stringify(msg)}},"*")}catch(e){}
+setTimeout(function(){window.close()},${ok ? 1000 : 4000});
+</script></body></html>`;
+}
+
+app.get("/api/e5/callback", async (c) => {
+  const code = c.req.query("code");
+  const state = c.req.query("state") || "";
+  const oauthErr = c.req.query("error_description") || c.req.query("error");
+  const raw = state ? await getSetting(c.env.DB, `e5oauth:${state}`) : null;
+  if (!raw) return c.html(e5ResultPage(false, "授权会话无效或已过期"));
+  const pending = JSON.parse(raw) as {
+    client_id: string;
+    client_secret: string;
+    tenant: string;
+    redirect_uri: string;
+    verifier: string;
+  };
+  const fail = (msg: string) =>
+    setSetting(c.env.DB, `e5oauth:${state}`, JSON.stringify({ ...pending, error: msg })).then(() =>
+      c.html(e5ResultPage(false, msg, state)),
+    );
+  if (oauthErr || !code) return fail(String(oauthErr || "未收到授权码"));
+  try {
+    const body = new URLSearchParams({
+      client_id: pending.client_id,
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: pending.redirect_uri,
+      code_verifier: pending.verifier,
+      scope: "offline_access https://graph.microsoft.com/.default",
+    });
+    if (pending.client_secret) body.set("client_secret", pending.client_secret);
+    const res = await fetch(
+      `https://login.microsoftonline.com/${encodeURIComponent(pending.tenant)}/oauth2/v2.0/token`,
+      { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: body.toString() },
+    );
+    const data = (await res.json().catch(() => ({}))) as {
+      refresh_token?: string;
+      error?: string;
+      error_description?: string;
+    };
+    if (!res.ok || !data.refresh_token) {
+      return fail((data.error_description || "").split(/[\r\n]/)[0] || data.error || "换取令牌失败");
+    }
+    await setSetting(c.env.DB, `e5oauth:${state}`, JSON.stringify({ ...pending, refresh_token: data.refresh_token, done: true }));
+    return c.html(e5ResultPage(true, "授权成功，Refresh Token 已获取", state));
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "网络错误");
+  }
+});
+
 // ── guarded API ──────────────────────────────────────────────────────────────
 const api = new Hono<{ Bindings: Env }>();
 api.use("*", requireAuth());

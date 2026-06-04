@@ -2,12 +2,15 @@ import { Hono } from "hono";
 import type { Automation, AutomationType, Env } from "../types";
 import {
   deleteAutomation,
+  deleteSetting,
   getAutomation,
   getChannelsByIds,
+  getSetting,
   insertAutomation,
   listAutomationRuns,
   listAutomations,
   now,
+  setSetting,
   uid,
   updateAutomationRow,
 } from "../db";
@@ -182,6 +185,76 @@ app.post("/act", async (c) => {
     }
   }
   return c.json(res, res.ok ? 200 : 502);
+});
+
+// ── Microsoft 365 E5 OAuth login (authorization-code + PKCE) ───────────────────
+function b64url(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+const E5_SCOPE = "offline_access https://graph.microsoft.com/.default";
+
+// Start login: build the Microsoft authorize URL and stash the PKCE verifier +
+// client creds against a one-time state. The public /api/e5/callback completes it.
+app.post("/e5/auth-start", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as {
+    client_id?: string;
+    client_secret?: string;
+    tenant?: string;
+    redirect_uri?: string;
+    login_hint?: string;
+  };
+  if (!body.client_id || !body.redirect_uri) return c.json({ error: "缺少 Client ID 或回调地址" }, 400);
+  const tenant = (body.tenant || "common").trim() || "common";
+  const state = uid();
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(48)).buffer);
+  const challenge = b64url(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)));
+  await setSetting(
+    c.env.DB,
+    `e5oauth:${state}`,
+    JSON.stringify({
+      client_id: body.client_id,
+      client_secret: body.client_secret || "",
+      tenant,
+      redirect_uri: body.redirect_uri,
+      verifier,
+      ts: now(),
+    }),
+  );
+  const params = new URLSearchParams({
+    client_id: body.client_id,
+    response_type: "code",
+    redirect_uri: body.redirect_uri,
+    response_mode: "query",
+    scope: E5_SCOPE,
+    state,
+    code_challenge: challenge,
+    code_challenge_method: "S256",
+    prompt: "select_account",
+  });
+  if (body.login_hint) params.set("login_hint", body.login_hint);
+  const authUrl = `https://login.microsoftonline.com/${encodeURIComponent(tenant)}/oauth2/v2.0/authorize?${params.toString()}`;
+  return c.json({ authUrl, state });
+});
+
+// Poll for the result after the popup finishes — returns the refresh_token once.
+app.get("/e5/auth-result", async (c) => {
+  const state = c.req.query("state") || "";
+  const raw = state ? await getSetting(c.env.DB, `e5oauth:${state}`) : null;
+  if (!raw) return c.json({ ok: false, error: "授权会话不存在或已过期" }, 404);
+  const p = JSON.parse(raw) as { done?: boolean; refresh_token?: string; tenant?: string; error?: string };
+  if (p.done && p.refresh_token) {
+    await deleteSetting(c.env.DB, `e5oauth:${state}`);
+    return c.json({ ok: true, refresh_token: p.refresh_token, tenant: p.tenant });
+  }
+  if (p.error) {
+    await deleteSetting(c.env.DB, `e5oauth:${state}`);
+    return c.json({ ok: false, error: p.error });
+  }
+  return c.json({ ok: false, pending: true });
 });
 
 app.get("/:id", async (c) => {

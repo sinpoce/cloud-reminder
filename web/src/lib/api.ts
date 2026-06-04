@@ -196,4 +196,21 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  // Microsoft 365 E5 OAuth login: start (returns the Microsoft authorize URL)
+  // and result (poll for the refresh_token once the popup finishes).
+  e5AuthStart: (body: {
+    client_id: string;
+    client_secret?: string;
+    tenant?: string;
+    redirect_uri: string;
+    login_hint?: string;
+  }) =>
+    request<{ authUrl: string; state: string }>("/api/automations/e5/auth-start", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  e5AuthResult: (state: string) =>
+    request<{ ok?: boolean; pending?: boolean; refresh_token?: string; tenant?: string; error?: string }>(
+      `/api/automations/e5/auth-result?state=${encodeURIComponent(state)}`,
+    ),
 };
