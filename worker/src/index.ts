@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Env } from "./types";
 import { getJwtSecret, requireAuth, signToken, verifyAdminPassword } from "./auth";
-import { getSetting } from "./db";
+import { getSetting, setSetting } from "./db";
 import { ensureSchema } from "./db-init";
 import remindersRoute from "./routes/reminders";
 import channelsRoute from "./routes/channels";
@@ -44,12 +44,39 @@ app.get("/", (c) =>
 
 app.get("/health", (c) => c.json({ ok: true, time: Math.floor(Date.now() / 1000) }));
 
+// Login with brute-force protection: after 10 consecutive wrong passwords the
+// login is locked for 30 minutes (counters persisted in D1, reset on success).
+const LOGIN_FAIL_LIMIT = 10;
+const LOGIN_LOCK_SECONDS = 30 * 60;
+
 app.post("/api/login", async (c) => {
+  const nowSec = Math.floor(Date.now() / 1000);
+
+  const lockedUntil = parseInt((await getSetting(c.env.DB, "login_locked_until")) || "0", 10);
+  if (lockedUntil > nowSec) {
+    const mins = Math.ceil((lockedUntil - nowSec) / 60);
+    return c.json({ error: `登录尝试过于频繁，请 ${mins} 分钟后再试` }, 429);
+  }
+
   const { password } = (await c.req.json().catch(() => ({}))) as { password?: string };
   const storedHash = await getSetting(c.env.DB, "admin_password_hash");
-  if (typeof password !== "string" || !(await verifyAdminPassword(password, storedHash, c.env.ADMIN_PASSWORD))) {
-    return c.json({ error: "Incorrect password" }, 401);
+  const ok =
+    typeof password === "string" &&
+    (await verifyAdminPassword(password, storedHash, c.env.ADMIN_PASSWORD));
+
+  if (!ok) {
+    const fails = parseInt((await getSetting(c.env.DB, "login_fail_count")) || "0", 10) + 1;
+    if (fails >= LOGIN_FAIL_LIMIT) {
+      await setSetting(c.env.DB, "login_locked_until", String(nowSec + LOGIN_LOCK_SECONDS));
+      await setSetting(c.env.DB, "login_fail_count", "0");
+      return c.json({ error: `密码连续错误 ${LOGIN_FAIL_LIMIT} 次，已锁定 30 分钟` }, 429);
+    }
+    await setSetting(c.env.DB, "login_fail_count", String(fails));
+    return c.json({ error: `密码错误，还可尝试 ${LOGIN_FAIL_LIMIT - fails} 次` }, 401);
   }
+
+  await setSetting(c.env.DB, "login_fail_count", "0");
+  await setSetting(c.env.DB, "login_locked_until", "0");
   const token = await signToken({ sub: "admin" }, await getJwtSecret(c.env));
   return c.json({ token });
 });

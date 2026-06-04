@@ -54,10 +54,13 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   const res = await fetch(`${BASE}${path}`, { ...init, headers });
 
-  if (res.status === 401) {
+  // A 401 on an authenticated request means the session expired → redirect to
+  // login. A 401 without a token (e.g. wrong password on /api/login) is a
+  // normal error — fall through and surface the server's message instead.
+  if (res.status === 401 && token) {
     clearToken();
     window.dispatchEvent(new CustomEvent("cr:unauthorized"));
-    throw new ApiError("Session expired", 401);
+    throw new ApiError("登录已过期，请重新登录", 401);
   }
 
   const data = await res.json().catch(() => ({}));

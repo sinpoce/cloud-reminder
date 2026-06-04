@@ -56,7 +56,7 @@ export function Login() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="默认密码 admin"
+              placeholder="请输入管理密码"
               className="field pl-10"
             />
           </div>
@@ -70,10 +70,6 @@ export function Login() {
           >
             登录
           </Button>
-
-          <p className="hint mt-4 text-center">
-            默认密码 <code className="rounded bg-elevated px-1.5 py-0.5 text-[11px]">admin</code>，登录后请在「设置」中尽快修改
-          </p>
         </form>
 
         <SinpoceCredit className="mt-7" />

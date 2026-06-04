@@ -28,8 +28,28 @@
 - 🤖 **自动化模块平台（Automations）** — 按计划运行的边缘任务，**模块化**：内置「DigitalPlat 域名续订」「HTTP 健康检查」；可在**浏览器里写自定义代码模块**（QuickJS WASM 沙箱执行），也可写文件式模块；结果可推送到通知渠道
 - 📊 **概览看板 / 发送记录** — 统计、即将触发、每次推送的成功/失败日志
 - 🎨 **专业 UI** — 深色 / 浅色主题、玻璃拟态、响应式，桌面与移动端均可用
-- 🔐 **单管理员鉴权** — 默认密码 `admin`（零配置即可登录），可在「设置」里**修改密码**（PBKDF2 哈希存于 D1）、**自选默认时区**（默认上海）；会话密钥自动生成
+- 🔐 **单管理员鉴权** — 默认密码 `admin`（零配置即可登录），**登录后请第一时间在「设置」里修改**（PBKDF2 哈希存于 D1）；登录**防暴力破解**（连续错误 10 次锁定 30 分钟）；会话密钥自动生成
 - ⚡ **边缘原生** — D1（SQLite）存储，Cron Trigger 每分钟派发，无需自建服务器
+
+> 🔑 **默认登录密码：`admin`** —— 登录后请立刻在「设置 → 修改管理员密码」里改掉（公网可访问）。
+
+---
+
+## 📸 界面预览
+
+| 登录 Login | 概览 Dashboard |
+| :---: | :---: |
+| ![登录](docs/screenshots/login.png) | ![概览](docs/screenshots/dashboard.png) |
+
+| 提醒 Reminders | 通知渠道 Channels |
+| :---: | :---: |
+| ![提醒](docs/screenshots/reminders.png) | ![通知渠道](docs/screenshots/channels.png) |
+
+| 自动化 Automations | 设置 Settings |
+| :---: | :---: |
+| ![自动化](docs/screenshots/automations.png) | ![设置](docs/screenshots/settings.png) |
+
+> 截图文件位于 [`docs/screenshots/`](docs/screenshots/)，支持浅色 / 深色主题。
 
 ---
 
