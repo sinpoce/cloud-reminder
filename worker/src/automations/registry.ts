@@ -1,6 +1,7 @@
 import type { AutomationModule } from "./module";
 import digitalplat from "./modules/digitalplat";
 import httpCheck from "./modules/httpcheck";
+import e5renew from "./modules/e5renew";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Automation module registry.
@@ -12,6 +13,7 @@ import httpCheck from "./modules/httpcheck";
 // ─────────────────────────────────────────────────────────────────────────────
 export const MODULES: Record<string, AutomationModule> = {
   [digitalplat.key]: digitalplat,
+  [e5renew.key]: e5renew,
   [httpCheck.key]: httpCheck,
   // [myModule.key]: myModule,
 };

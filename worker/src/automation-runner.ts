@@ -68,6 +68,8 @@ export async function runAutomationAndRecord(
 
   await updateAutomationRow(env.DB, {
     ...a,
+    // Persist any config changes the run requested (e.g. a rotated refresh_token).
+    config: result.configPatch ? { ...a.config, ...result.configPatch } : a.config,
     last_run: ts,
     last_status: result.status,
     last_detail: result.summary,

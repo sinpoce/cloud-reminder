@@ -104,4 +104,7 @@ export interface AutomationResult {
   summary: string;
   items: AutomationItemResult[];
   log?: string; // optional free-form log lines emitted via ctx.log()
+  // Optional config values to persist back after a run (e.g. a rotated
+  // refresh_token). Merged into the automation's stored config by the runner.
+  configPatch?: Record<string, unknown>;
 }
