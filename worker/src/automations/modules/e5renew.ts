@@ -1,23 +1,25 @@
 import type { AutomationItemResult, AutomationResult } from "../../types";
 import type { AutomationModule } from "../module";
 
-// Microsoft 365 E5 (developer) subscription keep-alive.
+// Microsoft 365 E5 (developer) subscription keep-alive — core API logic only.
 //
-// Core logic only (no Docker / web UI / mail — Cloud Reminder already schedules
-// and notifies): use an OAuth2 refresh_token to get an access token, then call
-// a batch of read-only Microsoft Graph endpoints to simulate activity so the
-// subscription stays active. The rotated refresh_token from each token response
-// is persisted back to the automation's config (always use the newest one).
+// Login (delegated): exchange an OAuth2 refresh_token for an access token, then
+// call a batch of read-only Microsoft Graph endpoints to simulate activity so
+// the subscription stays active. The rotated refresh_token is persisted back
+// each run (always use the newest one). Stats and a sustained-failure timer are
+// persisted in config too, so the card can show login/success/failure counts
+// and only notify after ≥10 minutes of continuous failure.
 interface E5Config {
   client_id: string;
   client_secret?: string; // confidential clients only; public clients leave blank
   refresh_token: string;
   tenant?: string; // default "common"
+  // Internal state (underscore-prefixed; persisted via configPatch, not form fields).
+  _fail_since?: number; // epoch ms of the first failure in the current failing streak (0 = healthy)
+  _total_success?: number;
+  _total_fail?: number;
 }
 
-// A spread of read-only Graph calls. Not all require the same scope — whichever
-// the granted token allows will succeed; the rest just 403 harmlessly. The
-// point is to generate genuine API activity.
 const GRAPH_ENDPOINTS = [
   "/me",
   "/users?$top=5",
@@ -34,6 +36,8 @@ const GRAPH_ENDPOINTS = [
   "/me/outlook/masterCategories",
   "/me/onenote/notebooks",
 ];
+
+const FAIL_NOTIFY_MS = 10 * 60 * 1000; // notify only after sustained failure ≥ 10 min
 
 interface TokenResult {
   ok: boolean;
@@ -93,50 +97,85 @@ async function callGraph(token: string, path: string): Promise<{ ok: boolean; st
 }
 
 async function run(cfg: E5Config): Promise<AutomationResult> {
-  if (!cfg.client_id || !cfg.refresh_token) {
-    return { status: "failed", summary: "缺少 Client ID 或 Refresh Token", items: [] };
-  }
-  const tok = await getToken(cfg);
-  if (!tok.ok || !tok.access_token) {
-    return { status: "failed", summary: `获取令牌失败：${tok.detail}`, items: [] };
-  }
+  const now = Date.now();
+  const prevFailSince = Number(cfg._fail_since) || 0;
+  const prevTotalOk = Number(cfg._total_success) || 0;
+  const prevTotalFail = Number(cfg._total_fail) || 0;
 
   const items: AutomationItemResult[] = [];
+  let loginOk = false;
   let success = 0;
-  for (const path of GRAPH_ENDPOINTS) {
-    const r = await callGraph(tok.access_token, path);
-    if (r.ok) success++;
-    items.push({
-      item: path,
-      action: r.ok ? "ok" : "failed",
-      detail: r.ok ? `HTTP ${r.status}` : `HTTP ${r.status || "请求失败"}（权限不足或不可用）`,
-    });
+  let fail = 0;
+  let loginDetail = "";
+  let newRefresh: string | undefined;
+
+  if (!cfg.client_id || !cfg.refresh_token) {
+    loginDetail = "缺少 Client ID 或 Refresh Token";
+  } else {
+    const tok = await getToken(cfg);
+    if (!tok.ok || !tok.access_token) {
+      loginDetail = tok.detail;
+    } else {
+      loginOk = true;
+      if (tok.refresh_token && tok.refresh_token !== cfg.refresh_token) newRefresh = tok.refresh_token;
+      for (const path of GRAPH_ENDPOINTS) {
+        const r = await callGraph(tok.access_token, path);
+        if (r.ok) success++;
+        else fail++;
+        items.push({
+          item: path,
+          action: r.ok ? "ok" : "failed",
+          detail: r.ok ? `HTTP ${r.status}` : `HTTP ${r.status || "请求失败"}`,
+        });
+      }
+    }
   }
 
-  // Persist the rotated refresh_token so the next run uses the freshest one.
-  const configPatch =
-    tok.refresh_token && tok.refresh_token !== cfg.refresh_token
-      ? { refresh_token: tok.refresh_token }
-      : undefined;
+  // A run "fails" if login failed or no Graph call succeeded.
+  const isFailure = !loginOk || success === 0;
+  const failSince = isFailure ? prevFailSince || now : 0;
+  const failedMin = isFailure && failSince ? Math.round((now - failSince) / 60000) : 0;
+  const notify = isFailure && failSince > 0 && now - failSince >= FAIL_NOTIFY_MS;
 
-  return {
-    status: success > 0 ? "success" : "partial",
-    summary: `E5 保活完成：令牌有效，${success}/${GRAPH_ENDPOINTS.length} 个 Graph 接口调用成功`,
-    items,
-    configPatch,
+  const configPatch: Record<string, unknown> = {
+    _login_ok: loginOk,
+    _last_success: success,
+    _last_fail: fail,
+    _total_success: prevTotalOk + success,
+    _total_fail: prevTotalFail + fail,
+    _fail_since: failSince,
+    _last_run: now,
   };
+  if (newRefresh) configPatch.refresh_token = newRefresh;
+
+  let status: AutomationResult["status"];
+  let summary: string;
+  if (!loginOk) {
+    status = "failed";
+    summary = notify ? `⚠️ 已连续失败约 ${failedMin} 分钟 · 登录失败：${loginDetail}` : `登录失败：${loginDetail}`;
+  } else if (success > 0) {
+    status = "success";
+    summary = `登录成功 · ${success}/${GRAPH_ENDPOINTS.length} 个 Graph 接口调用成功`;
+  } else {
+    status = "partial";
+    summary = notify
+      ? `⚠️ 已连续失败约 ${failedMin} 分钟 · 登录成功但所有接口调用失败`
+      : "登录成功，但所有接口调用失败";
+  }
+
+  return { status, summary, items, notify, configPatch };
 }
 
 const e5RenewModule: AutomationModule = {
   key: "e5_renew",
   label: "Microsoft 365 E5 续订",
-  description: "用 OAuth Refresh Token 定期调用 Microsoft Graph API 模拟活跃，保活 E5 开发者订阅。",
+  description: "用 OAuth Refresh Token 登录并定期调用 Microsoft Graph API 模拟活跃，保活 E5 开发者订阅。",
   icon: "activity",
-  docsUrl: "https://github.com/hongyonghan/Docker_Microsoft365_E5_Renew_X",
+  docsUrl: "https://github.com/sinpoce/cloud-reminder/blob/main/docs/e5-renew.md",
   fields: [
     { key: "client_id", label: "Client ID", required: true, placeholder: "Azure AD 应用(客户端) ID", hint: "Azure 门户 → 应用注册里的「应用程序(客户端) ID」" },
     { key: "client_secret", label: "Client Secret（机密客户端填）", required: false, secret: true, placeholder: "公共客户端可留空" },
-    { key: "refresh_token", label: "Refresh Token", required: true, secret: true, placeholder: "OAuth 授权得到的 refresh_token", hint: "每次运行后会自动轮换并保存新的 refresh_token" },
+    { key: "refresh_token", label: "Refresh Token", required: true, secret: true, placeholder: "用 rclone 登录授权得到的 refresh_token", hint: "获取方式见下方文档；每次运行后会自动轮换并保存新值" },
     { key: "tenant", label: "租户（可选）", required: false, placeholder: "common", hint: "默认 common；也可填 organizations 或具体租户 ID" },
   ],
   run: (ctx) => run(ctx.config as unknown as E5Config),
@@ -144,7 +183,7 @@ const e5RenewModule: AutomationModule = {
     const cfg = ctx.config as unknown as E5Config;
     if (!cfg.client_id || !cfg.refresh_token) return { ok: false, detail: "缺少 Client ID 或 Refresh Token" };
     const tok = await getToken(cfg);
-    return { ok: tok.ok, detail: tok.ok ? "凭据有效，可成功获取 access_token" : tok.detail };
+    return { ok: tok.ok, detail: tok.ok ? "登录成功，凭据有效" : `登录失败：${tok.detail}` };
   },
 };
 

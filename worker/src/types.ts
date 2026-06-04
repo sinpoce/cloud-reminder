@@ -107,4 +107,7 @@ export interface AutomationResult {
   // Optional config values to persist back after a run (e.g. a rotated
   // refresh_token). Merged into the automation's stored config by the runner.
   configPatch?: Record<string, unknown>;
+  // Explicit notify override. When set, the runner uses it instead of its
+  // default heuristic — e.g. E5 only notifies after sustained (≥10 min) failure.
+  notify?: boolean;
 }

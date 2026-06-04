@@ -247,6 +247,7 @@ export function Automations() {
                 </div>
 
                 {!isCustom && mod?.hasInspect && <DomainList automation={a} />}
+                {!isCustom && a.type === "e5_renew" && <E5Stats automation={a} />}
               </div>
             );
           })}
@@ -917,6 +918,45 @@ function DomainList({ automation }: { automation: Automation }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Microsoft 365 E5 stats — shown on the E5 automation card ───────────────────
+function E5Stats({ automation }: { automation: Automation }) {
+  const c = automation.config as Record<string, unknown>;
+  if (c._last_run == null) {
+    return (
+      <div className="mt-3 border-t border-border pt-3">
+        <p className="text-xs text-muted">尚未运行；运行后这里会显示登录状态与调用成功 / 失败统计。</p>
+      </div>
+    );
+  }
+  const loginOk = !!c._login_ok;
+  const lastOk = Number(c._last_success) || 0;
+  const lastFail = Number(c._last_fail) || 0;
+  const totalOk = Number(c._total_success) || 0;
+  const totalFail = Number(c._total_fail) || 0;
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-border pt-3 text-xs">
+      <span className="flex items-center gap-1.5 text-muted">
+        登录
+        {loginOk ? (
+          <span className="inline-flex items-center gap-1 text-emerald-400">
+            <CheckCircle2 className="h-3.5 w-3.5" />成功
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-rose-400">
+            <XCircle className="h-3.5 w-3.5" />失败
+          </span>
+        )}
+      </span>
+      <span className="text-muted">
+        本次调用：<span className="text-emerald-400">{lastOk} 成功</span> · <span className="text-rose-400">{lastFail} 失败</span>
+      </span>
+      <span className="text-muted">
+        累计：<span className="text-emerald-400">{totalOk}</span> 成功 · <span className="text-rose-400">{totalFail}</span> 失败
+      </span>
     </div>
   );
 }

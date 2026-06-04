@@ -77,10 +77,13 @@ export async function runAutomationAndRecord(
     updated_at: ts,
   });
 
-  // Notify on scheduled runs when something actually happened (renew/failure).
-  if (opts.notify && result.status !== "success") {
-    await notify(env, a, result);
-  } else if (opts.notify && result.items.some((i) => i.action === "ok")) {
+  // Modules can explicitly control notification via result.notify; otherwise
+  // fall back to "notify on failure, or when something actually succeeded".
+  const shouldNotify =
+    typeof result.notify === "boolean"
+      ? result.notify
+      : result.status !== "success" || result.items.some((i) => i.action === "ok");
+  if (opts.notify && shouldNotify) {
     await notify(env, a, result);
   }
 
