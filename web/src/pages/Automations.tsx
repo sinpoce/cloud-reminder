@@ -245,6 +245,8 @@ export function Automations() {
                     <Trash2 className="h-4 w-4" />
                   </IconButton>
                 </div>
+
+                {!isCustom && mod?.hasInspect && <DomainList automation={a} />}
               </div>
             );
           })}
@@ -847,6 +849,72 @@ function DomainPanel({
             );
           })}
           <p className="hint">「自动」关闭的域名，定时任务不会自动续期（仍可手动续期）；改动保存后生效。</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── DigitalPlat domain list — collapsible, shown on the automation card ────────
+function DomainList({ automation }: { automation: Automation }) {
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<ManagedItem[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && items === null) {
+      setLoading(true);
+      try {
+        const r = await api.inspectAutomation({ id: automation.id, type: automation.type, config: {} });
+        setItems(r.items);
+        if (!r.ok) toast("error", r.detail);
+      } catch (e) {
+        setItems([]);
+        toast("error", e instanceof ApiError ? e.message : "加载域名失败");
+      } finally {
+        setLoading(false);
+      }
+    }
+  }
+
+  return (
+    <div className="mt-3 border-t border-border pt-3">
+      <button
+        type="button"
+        onClick={toggle}
+        className="flex w-full items-center gap-1.5 text-xs font-medium text-muted transition hover:text-fg"
+      >
+        <ChevronRight className={cn("h-3.5 w-3.5 transition", open && "rotate-90")} />
+        域名与到期{items ? ` · 共 ${items.length} 个` : ""}
+      </button>
+      {open && (
+        <div className="mt-2.5">
+          {loading ? (
+            <div className="flex justify-center py-3">
+              <RefreshCw className="h-4 w-4 animate-spin text-muted" />
+            </div>
+          ) : !items || items.length === 0 ? (
+            <p className="hint">没有域名或加载失败。</p>
+          ) : (
+            <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+              {items.map((d) => {
+                const tone =
+                  d.status === "danger" ? "text-rose-400" : d.status === "warn" ? "text-amber-400" : "text-muted";
+                return (
+                  <div
+                    key={d.id}
+                    className="flex items-center justify-between gap-3 rounded-lg bg-elevated/40 px-3 py-2"
+                  >
+                    <span className="truncate text-sm text-fg">{d.title}</span>
+                    <span className={cn("shrink-0 text-xs", tone)}>{d.subtitle}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
