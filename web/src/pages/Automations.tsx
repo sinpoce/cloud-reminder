@@ -249,6 +249,7 @@ export function Automations() {
 
                 {!isCustom && mod?.hasInspect && <DomainList automation={a} />}
                 {!isCustom && a.type === "e5_renew" && <E5Stats automation={a} />}
+                {!isCustom && a.type === "oracle_alive" && <OracleStats automation={a} />}
               </div>
             );
           })}
@@ -1054,6 +1055,31 @@ function E5Stats({ automation }: { automation: Automation }) {
       <span className="text-muted">
         累计：<span className="text-emerald-400">{totalOk}</span> 成功 · <span className="text-rose-400">{totalFail}</span> 失败
       </span>
+    </div>
+  );
+}
+
+// ── Oracle tenancy stats — shown on the 甲骨文测活 card ─────────────────────────
+function OracleStats({ automation }: { automation: Automation }) {
+  const c = automation.config as Record<string, unknown>;
+  if (c._checked_at == null) {
+    return (
+      <div className="mt-3 border-t border-border pt-3">
+        <p className="text-xs text-muted">尚未运行；运行后这里会显示存活 / 封禁 / 不存在统计。</p>
+      </div>
+    );
+  }
+  const alive = Number(c._alive) || 0;
+  const dead = Number(c._dead) || 0;
+  const gone = Number(c._void) || 0;
+  const total = Number(c._total) || 0;
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 border-t border-border pt-3 text-xs">
+      <span className="text-muted">共 {total} 个</span>
+      <span className="text-emerald-400">🟢 正常 {alive}</span>
+      {dead > 0 && <span className="text-rose-400">💀 封禁 {dead}</span>}
+      {gone > 0 && <span className="text-amber-400">❓ 不存在 {gone}</span>}
+      {dead === 0 && gone === 0 && <span className="text-emerald-400">全部存活 🎉</span>}
     </div>
   );
 }
