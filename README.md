@@ -1,8 +1,10 @@
-# ☁️ Cloud Reminder · 云端提醒
+# ☁️ Cloud Reminder
 
-> **中文**：部署在 **Cloudflare Workers**（+ D1 + Cron）上的自托管提醒服务。接入 **Telegram / 企业微信 / 飞书 / 邮箱 / Webhook**，到点自动推送；内置自动化模块（含 DigitalPlat 域名续订），并支持在浏览器里写自定义代码模块。专业、轻量、全球边缘运行，几乎零成本。
+<sub>云端提醒 · 部署在 Cloudflare Workers 上的自托管提醒 & 自动化服务</sub>
+
+> A self-hosted **reminder & automation** service that runs entirely on **Cloudflare Workers** (D1 + Cron). Schedule pushes to **Telegram / WeCom / Feishu / Email / Bark / Webhook**, run built-in automation modules (including DigitalPlat domain renewal), and even write custom code modules right in your browser. Lightweight, edge-native, near-zero cost — one-click deploy.
 >
-> **English**: A self-hosted reminder & automation service running entirely on **Cloudflare Workers** (D1 + Cron). Push to Telegram / WeCom / Feishu / Email / Webhook on schedule; built-in automation modules (incl. DigitalPlat domain renewal) plus in-browser custom code modules. Lightweight, edge-native, near-zero cost — one-click deploy.
+> <sub>自托管的提醒与自动化服务，全程运行在 Cloudflare Workers（D1 + Cron）。按计划推送到 Telegram / 企业微信 / 飞书 / 邮箱 / Bark / Webhook，内置自动化模块（含 DigitalPlat 域名续订），还能在浏览器里直接写自定义代码模块。轻量、边缘原生、近乎零成本，一键部署。</sub>
 
 <p align="center">
   <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/sinpoce/cloud-reminder">
@@ -11,233 +13,253 @@
 </p>
 
 <p align="center">
-  <em>单 Worker：API · 每分钟 Cron · D1 数据库 · 内置 React 控制台</em>
+  <em>One Worker: API · per-minute Cron · D1 database · built-in React console</em><br>
+  <sub>单个 Worker：API · 每分钟 Cron · D1 数据库 · 内置 React 控制台</sub>
 </p>
 
 ---
 
-## ✨ 功能特性
+## ✨ Features
 
-- 🔔 **三种触发方式** — ①一次性（精确时间点）②**间隔重复**（每 N 分钟/小时/天/周/月/年，如每 180 天、每年）③**定时重复**（可视化选「频率 / 星期 / 时间」，无需手写 Cron）
-- 🎛 **自定义提醒周期** — 预设一键选择，或自定义「每 N 个单位」；定时模式提供可视化构建器（高级模式仍可写 Cron 表达式）
-- 🧪 **测试发送真实内容** — 编辑提醒时点「测试发送」，立即把你设置的**真实标题/内容**推送到所选渠道，并显示每个渠道的成功/失败原因
-- 🌍 **时区感知** — 每条提醒可单独设置 IANA 时区，调度在 Worker 上按时区精确计算（按月/年重复自动处理月末日）
-- 🌗 **浅色 / 深色主题** — 默认浅色，一键切换深色，选择本地记忆
-- 📡 **多渠道推送** — Telegram、企业微信、飞书（支持签名）、**邮箱（Resend / SMTP）**、**Bark（iOS）**、通用 Webhook；每个渠道可**自定义消息模板**
-- 🔌 **渠道连通性测试** — 渠道卡片一键发送测试消息，快速验证 Token / Webhook 是否可用
-- 🤖 **自动化模块平台（Automations）** — 按计划运行的边缘任务，**模块化**：内置「DigitalPlat 域名续订」「HTTP 健康检查」；可在**浏览器里写自定义代码模块**（QuickJS WASM 沙箱执行），也可写文件式模块；结果可推送到通知渠道
-- 📊 **概览看板 / 发送记录** — 统计、即将触发、每次推送的成功/失败日志
-- 🎨 **专业 UI** — 深色 / 浅色主题、玻璃拟态、响应式，桌面与移动端均可用
-- 🔐 **单管理员鉴权** — 默认密码 `admin`（零配置即可登录），**登录后请第一时间在「设置」里修改**（PBKDF2 哈希存于 D1）；登录**防暴力破解**（连续错误 10 次锁定 30 分钟）；会话密钥自动生成
-- ⚡ **边缘原生** — D1（SQLite）存储，Cron Trigger 每分钟派发，无需自建服务器
+<sub>功能特性</sub>
 
-> 🔑 **默认登录密码：`admin`** —— 登录后请立刻在「设置 → 修改管理员密码」里改掉（公网可访问）。
+- 🔔 **Three trigger types** — one-time (exact moment), **interval repeat** (every N minutes/hours/days/weeks/months/years, e.g. every 180 days or yearly), and **scheduled repeat** (pick frequency / weekday / time visually — no Cron required). <br><sub>三种触发方式 — 一次性、间隔重复（每 N 分钟/时/天/周/月/年）、定时重复（可视化选频率/星期/时间，无需手写 Cron）。</sub>
+- 🎛 **Custom repeat cycles** — one-click presets or a custom "every N units"; the scheduled mode has a visual builder, with a raw Cron field still available in advanced mode. <br><sub>自定义周期 — 预设一键选择或自定义「每 N 个单位」；定时模式提供可视化构建器，高级模式仍可写 Cron。</sub>
+- 🧪 **Test with the real payload** — hit "Test send" while editing a reminder to push your **actual title/body** to the selected channels immediately, with per-channel success/failure reasons. <br><sub>测试发送真实内容 — 编辑时点「测试发送」，立即把真实标题/内容推到所选渠道，并显示每个渠道的成功/失败原因。</sub>
+- 🌍 **Time-zone aware** — every reminder carries its own IANA time zone; scheduling is computed precisely on the Worker (month/year repeats handle end-of-month days automatically). <br><sub>时区感知 — 每条提醒可单独设时区，调度在 Worker 上按时区精确计算（按月/年重复自动处理月末日）。</sub>
+- 🌗 **Light / dark theme** — light by default, one-click dark, choice remembered locally. <br><sub>浅色 / 深色主题 — 默认浅色，一键切换深色，选择本地记忆。</sub>
+- 📡 **Multi-channel push** — Telegram, WeCom, Feishu (with signing), **Email (Resend / SMTP)**, **Bark (iOS)**, and a generic Webhook; each channel has a **customizable message template**. <br><sub>多渠道推送 — Telegram、企业微信、飞书（支持签名）、邮箱（Resend / SMTP）、Bark（iOS）、通用 Webhook；每个渠道可自定义消息模板。</sub>
+- 🔌 **Channel connectivity test** — send a test message straight from a channel card to verify the token / webhook works. <br><sub>渠道连通性测试 — 渠道卡片一键发送测试消息，快速验证 Token / Webhook 是否可用。</sub>
+- 🤖 **Automation platform** — scheduled edge tasks built as **modules**: ships with "DigitalPlat domain renewal" and "HTTP health check"; write **custom code modules in the browser** (run in a QuickJS WASM sandbox) or as typed files; results can be pushed to your channels. <br><sub>自动化模块平台 — 按计划运行的边缘任务，模块化：内置「DigitalPlat 域名续订」「HTTP 健康检查」；可在浏览器里写自定义代码模块（QuickJS WASM 沙箱），也可写文件式模块；结果可推送到通知渠道。</sub>
+- 📊 **Dashboard & delivery log** — stats, upcoming triggers, and per-push success/failure history. <br><sub>概览看板 / 发送记录 — 统计、即将触发、每次推送的成功/失败日志。</sub>
+- 🎨 **Polished UI** — glassmorphism, responsive, works on desktop and mobile. <br><sub>专业 UI — 玻璃拟态、响应式，桌面与移动端均可用。</sub>
+- 🔐 **Single-admin auth** — default password `admin` (zero-config login); PBKDF2-hashed in D1, brute-force lockout (10 wrong tries → 30-min lock), auto-generated session key. <br><sub>单管理员鉴权 — 默认密码 `admin`（零配置登录），PBKDF2 哈希存于 D1，登录防暴破（错 10 次锁 30 分钟），会话密钥自动生成。</sub>
+- ⚡ **Edge-native** — D1 (SQLite) storage, a Cron Trigger dispatching every minute, no server to run. <br><sub>边缘原生 — D1（SQLite）存储，Cron 每分钟派发，无需自建服务器。</sub>
 
----
-
-## 📸 界面预览
-
-| 登录 Login | 概览 Dashboard |
-| :---: | :---: |
-| ![登录](docs/screenshots/login.png) | ![概览](docs/screenshots/dashboard.png) |
-
-| 提醒 Reminders | 通知渠道 Channels |
-| :---: | :---: |
-| ![提醒](docs/screenshots/reminders.png) | ![通知渠道](docs/screenshots/channels.png) |
-
+> 🔑 **Default login password: `admin`** — change it **immediately** after first login under *Settings → Change admin password* (your instance is publicly reachable). <br><sub>🔑 默认登录密码 `admin` —— 登录后请立刻在「设置 → 修改管理员密码」里改掉（公网可访问）。</sub>
 
 ---
 
-## 🧱 架构
+## 📸 Screenshots
+
+<sub>界面预览</sub>
+
+| Login | Dashboard |
+| :---: | :---: |
+| ![Login](docs/screenshots/login.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+
+| Reminders | Channels |
+| :---: | :---: |
+| ![Reminders](docs/screenshots/reminders.png) | ![Channels](docs/screenshots/channels.png) |
+
+---
+
+## 🧱 Architecture
+
+<sub>架构</sub>
 
 ```
                          ┌──────────────────────────────────────────────┐
-   浏览器 ──HTTPS/JWT──▶ │            Cloudflare Worker（单一服务）          │
+   Browser ─HTTPS/JWT─▶  │         Cloudflare Worker (single service)    │
                          │                                              │
-                         │  Static Assets  →  React 控制台（web/dist）    │
-                         │  Hono API       →  /api/*                     │
-                         │  ⏰ Cron "* * * * *"  →  每分钟派发到期提醒/自动化 │
+                         │  Static Assets  →  React console (web/dist)  │
+                         │  Hono API       →  /api/*                    │
+                         │  ⏰ Cron "* * * * *" → dispatch due items/min │
                          │                          │                   │
                          │   ┌──────────────┬───────┼───────┬─────────┐ │
                          │   ▼              ▼       ▼       ▼         ▼ │
-                         │ Telegram      企业微信   飞书    邮箱     Webhook│
+                         │ Telegram       WeCom   Feishu  Email   Webhook│
                          │                          │                   │
                          │                          ▼                   │
                          │                 D1 (SQLite) reminders/...     │
                          └──────────────────────────────────────────────┘
 ```
 
-**一个 Worker 搞定全部**：用 Workers Static Assets 托管前端、Hono 处理 API、Cron 每分钟派发。前端与 API 同源，无需 CORS。（本地开发时前后端分开跑，见下文。）
+**One Worker does everything**: it serves the frontend via Workers Static Assets, handles the API with Hono, and dispatches due reminders/automations every minute via Cron. The frontend and API are same-origin, so there is no CORS to configure. (For local development the frontend and backend run separately — see below.)
+
+<sub>一个 Worker 搞定全部：用 Static Assets 托管前端、Hono 处理 API、Cron 每分钟派发。前端与 API 同源，无需 CORS（本地开发时前后端分开跑，见下文）。</sub>
 
 ---
 
-## 📁 目录结构
+## 📁 Project layout
+
+<sub>目录结构</sub>
 
 ```
 cloud-reminder/
-├── wrangler.jsonc          # 统一部署配置（Worker + Static Assets + D1 + Cron），一键按钮用
-├── worker/                 # Cloudflare Worker：API + Cron + 渠道 + 自动化
+├── wrangler.jsonc          # unified deploy config (Worker + Static Assets + D1 + Cron); used by the button
+├── worker/                 # Cloudflare Worker: API + Cron + channels + automations
 │   ├── src/
-│   │   ├── index.ts        # Hono 应用 + scheduled() + 静态资源回退
-│   │   ├── auth.ts         # JWT、密码哈希、鉴权中间件
-│   │   ├── db.ts / db-init.ts   # D1 数据访问 / 首次自动建表
-│   │   ├── schedule.ts     # 时区感知的 Cron / interval 计算
+│   │   ├── index.ts        # Hono app + scheduled() + static-asset fallback
+│   │   ├── auth.ts         # JWT, password hashing, auth middleware
+│   │   ├── db.ts / db-init.ts   # D1 access / auto-create tables on first run
+│   │   ├── schedule.ts     # time-zone-aware Cron / interval math
 │   │   ├── channels/       # telegram / wechat / feishu / email / webhook
-│   │   ├── automations/    # 模块平台（digitalplat / httpcheck / 自定义代码沙箱）
+│   │   ├── automations/    # module platform (digitalplat / httpcheck / custom-code sandbox)
 │   │   └── routes/         # reminders / channels / automations / settings / meta
 │   ├── schema.sql · migrations/
-│   └── wrangler.toml       # 仅本地开发 / 单 Worker-API 用
-└── web/                    # React + Vite + Tailwind 控制台（构建产物由 Worker 托管）
+│   └── wrangler.toml       # local dev / Worker-API-only
+└── web/                    # React + Vite + Tailwind console (built output served by the Worker)
     └── src/{pages,components,lib}
 ```
 
 ---
 
-## 🚀 部署
+## 🚀 Deploy
 
-有两种方式：**A. 一键部署（最简单）** 或 **B. 手动部署**。
+<sub>部署 — 两种方式：A 一键部署（最简单）或 B 手动部署</sub>
 
-### 方式 A · 一键部署到 Cloudflare（推荐）
+There are two ways: **A. One-click deploy (easiest)** or **B. Manual deploy**.
+
+### Option A · One-click deploy to Cloudflare (recommended)
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/sinpoce/cloud-reminder)
 
-点上面的按钮，Cloudflare 会把本仓库**复制一份到你的 GitHub 账户**（一个独立仓库 —— 注意它是**内容副本，不是 fork**）→ 自动**创建 D1 数据库**并构建前端 → 部署为**一个 Worker**（同时托管控制台、API 与每分钟 Cron）。数据库表会在首次访问时**自动创建**，无需手动迁移。
+Click the button — Cloudflare **copies this repo into your own GitHub account** (a standalone repo — note it is a **content copy, not a fork**), **creates a D1 database**, builds the frontend, and deploys **one Worker** (serving the console, the API, and the per-minute Cron). Tables are **created automatically** on first visit, so no manual migration is needed.
 
-> 🔄 **后续如何更新**：因为是独立副本（非 fork），主仓库发布新版本时**不会自动同步**过来。更新步骤见下方 **「🔄 更新到最新版本」**；想要"以后在网页上一键更新"，可改用其中的 **Fork 方式**搭建。
+> <sub>点上面的按钮，Cloudflare 会把本仓库复制一份到你的 GitHub 账户（独立仓库，是内容副本，不是 fork）→ 自动创建 D1 → 构建前端 → 部署为一个 Worker（同时托管控制台、API、每分钟 Cron）。数据库表首次访问自动创建，无需迁移。</sub>
 
-**零配置即可用**：默认登录密码是 **`admin`**，会话密钥（JWT）首次运行时自动生成并存入 D1 —— 无需设置任何 Secret 就能登录。
+> 🔄 **Updating later**: because it is a standalone copy (not a fork), it does **not** auto-sync when this repo releases a new version. See **"🔄 Update to the latest version"** below; if you want one-click web updates, use the **Fork method** described there. <br><sub>后续更新：因为是独立副本（非 fork），主仓库发新版不会自动同步。更新见下方「🔄 更新到最新版本」；想要网页一键更新，改用其中的 Fork 方式。</sub>
 
-> ⚠️ **务必首次登录后立刻在「设置」里改密码！** 默认 `admin` 仅为开箱即用，公网可访问。
-> 如需自定义，可在 Worker → Settings → Variables 设置可选 Secret：`ADMIN_PASSWORD`（覆盖默认密码）、`JWT_SECRET`（覆盖自动生成的会话密钥）。
+**Works with zero config**: the default login password is **`admin`**, and the session (JWT) key is auto-generated on first run and stored in D1 — no secret to set before you can log in.
 
-> 这一键方案把前端以 **Workers Static Assets** 形式与 Worker 打包在一起（同源，无需配置 CORS / API 地址）。原理见根目录 [`wrangler.jsonc`](wrangler.jsonc)。
+> ⚠️ **Change the password immediately after your first login, under *Settings*.** The default `admin` is for out-of-the-box use only and your instance is public. To customize, set optional secrets in *Worker → Settings → Variables*: `ADMIN_PASSWORD` (override the default) and `JWT_SECRET` (override the auto-generated session key). <br><sub>⚠️ 首次登录后请立刻在「设置」里改密码！默认 `admin` 仅为开箱即用、公网可访问。可在 Worker → Settings → Variables 设置可选 Secret：`ADMIN_PASSWORD`、`JWT_SECRET`。</sub>
 
----
+### Option B · Manual deploy (single Worker, same result as one-click)
 
-### 方式 B · 手动部署（单 Worker，效果与一键相同）
+Prerequisites: a free [Cloudflare account](https://dash.cloudflare.com/sign-up), **Node 18+**, and Wrangler (`npm i -g wrangler` then `wrangler login` — browser auth, no API token needed).
 
-前置要求：
+<sub>前置：免费 Cloudflare 账号、Node 18+、Wrangler（`npm i -g wrangler` 后 `wrangler login` 浏览器授权）。</sub>
 
-- 一个 [Cloudflare 账号](https://dash.cloudflare.com/sign-up)（免费版即可）
-- 本机已装 **Node 18+**
-- 安装并登录 Wrangler：`npm i -g wrangler` 然后 `wrangler login`（浏览器授权，无需 API Token）
-
-在**仓库根目录**执行：
+Run from the **repo root**:
 
 ```bash
-# 1) 创建 D1 数据库，把返回的 database_id 填进根目录 wrangler.jsonc 的 d1_databases
+# 1) Create the D1 database, then paste the returned database_id into d1_databases in the root wrangler.jsonc
 wrangler d1 create cloud_reminder
 
-# 2) 安装依赖并部署（自动构建前端 + 部署「统一 Worker」：控制台 + API + 每分钟 Cron）
+# 2) Install deps and deploy (builds the frontend + deploys the unified Worker: console + API + per-minute Cron)
 npm --prefix worker install && npm --prefix web install
-wrangler deploy            # 使用根目录 wrangler.jsonc
+wrangler deploy            # uses the root wrangler.jsonc
 
-# 3)（可选）覆盖默认密码 / 会话密钥；不设也能用（默认密码 admin，JWT 自动生成）
+# 3) (optional) Override the default password / session key; both work without this (password "admin", JWT auto-generated)
 wrangler secret put ADMIN_PASSWORD
 wrangler secret put JWT_SECRET
 ```
 
-部署后打开 Worker 地址 `https://cloud-reminder.<你的子域>.workers.dev`：
+Open `https://cloud-reminder.<your-subdomain>.workers.dev`:
 
-- 数据库表**首次访问自动创建**，无需迁移；
-- 用默认密码 **`admin`** 登录，然后在「设置」里**尽快改密码**。
+- tables are **created on first visit**, no migration needed;
+- log in with the default password **`admin`**, then **change it ASAP** under *Settings*.
 
-> 前端以 **Workers Static Assets** 与 Worker 同源打包 —— 无需单独部署 Pages、也无需配置 CORS / API 地址。Cron（`* * * * *`）已在 `wrangler.jsonc` 中配置。
+> The frontend is bundled same-origin via **Workers Static Assets** — no separate Pages deploy, no CORS / API URL to configure. The Cron (`* * * * *`) is already set in `wrangler.jsonc`. <br><sub>前端以 Workers Static Assets 与 Worker 同源打包 —— 无需单独部署 Pages、无需配置 CORS。Cron 已在 wrangler.jsonc 中配置。</sub>
 
 ---
 
-## 🔌 配置通知渠道
+## 🔌 Configure notification channels
 
-登录后进入 **通知渠道 Channels → 添加渠道**，按类型填写：
+<sub>配置通知渠道 — 登录后进入「通知渠道 → 添加渠道」，按类型填写</sub>
+
+After logging in, go to **Channels → Add channel** and fill in by type:
 
 ### Telegram
-1. 给 [@BotFather](https://t.me/BotFather) 发送 `/newbot`，拿到 **Bot Token**。
-2. 给你的机器人发一条消息，然后访问
-   `https://api.telegram.org/bot<token>/getUpdates`，在返回里找到 `chat.id`。
-3. 填入 **Bot Token** 与 **Chat ID**。
+1. Send `/newbot` to [@BotFather](https://t.me/BotFather) to get a **Bot Token**.
+2. Send your bot a message, then open `https://api.telegram.org/bot<token>/getUpdates` and find `chat.id`.
+3. Enter the **Bot Token** and **Chat ID**.
 
-### 企业微信（WeCom）
-1. 在企业微信群里「**添加群机器人**」。
-2. 复制它的 **Webhook 地址**，粘贴到「Webhook URL」。
+### WeCom (企业微信)
+1. In a WeCom group, "**Add group bot**".
+2. Copy its **Webhook URL** and paste it into "Webhook URL".
 
-### 飞书 / Feishu
-1. 飞书群「**设置 → 群机器人 → 添加自定义机器人**」。
-2. 复制 **Webhook 地址**；若开启了「签名校验」，把密钥填入 **Signing Secret**。
+### Feishu (飞书)
+1. In a Feishu group: "**Settings → Group bots → Add custom bot**".
+2. Copy the **Webhook URL**; if "signature verification" is on, put the secret into **Signing Secret**.
 
-### 邮箱 / Email（Resend 或 SMTP）
-在「发送方式」里二选一：
-- **Resend API**（最简单）：在 [resend.com](https://resend.com) 创建 **API Key**；发件人需为已验证域名，测试可用 `onboarding@resend.dev`。
-- **SMTP**：填你邮箱的 SMTP 服务器，如 QQ `smtp.qq.com:465`、Gmail `smtp.gmail.com:465`、163 `smtp.163.com:465`；**密码填「授权码 / 应用专用密码」**（不是登录密码）。端口 **465 走 SSL、587 走 STARTTLS**（Cloudflare Workers 不支持 25 端口）。
+### Email (Resend or SMTP)
+Choose one delivery method:
+- **Resend API** (easiest): create an **API Key** at [resend.com](https://resend.com); the sender must be a verified domain (use `onboarding@resend.dev` for testing).
+- **SMTP**: your provider's SMTP server, e.g. QQ `smtp.qq.com:465`, Gmail `smtp.gmail.com:465`, 163 `smtp.163.com:465`; the **password is an "app/authorization code", not your login password**. Port **465 = SSL, 587 = STARTTLS** (Cloudflare Workers does not support port 25).
 
-> 📧 邮件正文用**内置带 SINPOCE 品牌的 HTML 模板**（卡片式，含事件 / 内容 / 时间），可在渠道「邮件模板」里自行修改；占位符 `{{title}} {{body}} {{time}}`。
+> 📧 Emails use a built-in branded HTML template (card layout with event / body / time), editable per channel under "Email template"; placeholders `{{title}} {{body}} {{time}}`. <br><sub>📧 邮件用内置 HTML 模板（卡片式，含事件/内容/时间），可在渠道「邮件模板」里改；占位符 {{title}} {{body}} {{time}}。</sub>
 
-### Bark（iOS 推送）
-1. 安装 iOS App **Bark**，把它「您的推送地址」整条（如 `https://api.day.app/xxxxxx`）**直接粘贴**到 **Bark 推送地址 / Device Key**，会自动识别服务器与 Device Key。
-2. 也可只填地址末尾的 Device Key；自建 Bark 服务器同样支持，可选填提示音、分组。
+### Bark (iOS push)
+1. Install the **Bark** iOS app and **paste its full "push URL"** (e.g. `https://api.day.app/xxxxxx`) into **Bark URL / Device Key** — server and device key are detected automatically.
+2. You can also enter just the trailing Device Key; self-hosted Bark servers work too, with optional sound and group.
 
-### 通用 Webhook
-向你的 URL `POST` 一段 JSON：`{ "title", "body", "timestamp" }`。
-可对接 Discord、Slack、n8n、自建服务等。
+### Generic Webhook
+`POST` a JSON body `{ "title", "body", "timestamp" }` to your URL. Works with Discord, Slack, n8n, your own service, etc.
 
-> 添加后点击卡片上的「**测试**」即可立即验证连通性。
+> Click "**Test**" on a channel card to verify connectivity instantly. <br><sub>添加后点卡片上的「测试」即可立即验证连通性。</sub>
 >
-> 💬 **消息模板**：每个渠道都有内置默认模板 `🔔 {{title}}` / `{{body}}` / `🕐 {{time}}`（含事件、内容、时间），可在渠道里自行修改；清空则回退到内置默认。占位符：`{{title}}` 标题、`{{body}}` 内容、`{{time}}` 触发时间（按提醒时区）。
+> 💬 **Message templates**: every channel has a built-in default `🔔 {{title}}` / `{{body}}` / `🕐 {{time}}`, editable per channel; clear it to fall back to the default. Placeholders: `{{title}}`, `{{body}}`, `{{time}}` (in the reminder's time zone). <br><sub>💬 消息模板：每个渠道有内置默认模板，可自行修改，清空则回退默认。占位符：{{title}} 标题、{{body}} 内容、{{time}} 触发时间（按提醒时区）。</sub>
 
 ---
 
-## 🕒 提醒与调度是怎么工作的
+## 🕒 How reminders & scheduling work
 
-- 所有时间在数据库中以 **UTC 秒**存储；每条提醒带自己的 IANA 时区。
-- Worker 的 `scheduled()` 每分钟触发一次：
-  1. 查询 `enabled = 1 且 next_run <= now` 的提醒；
-  2. 并发发送到该提醒选择的所有渠道，并写入 `deliveries` 日志；
-  3. **一次性**提醒发送后结束（`next_run = NULL`）；**周期 / Cron** 提醒按时区重新计算下次触发时间。
+<sub>提醒与调度是怎么工作的</sub>
 
-### 自定义提醒周期规则
+- All times are stored in the database as **UTC seconds**; each reminder carries its own IANA time zone.
+- The Worker's `scheduled()` runs once a minute:
+  1. query reminders where `enabled = 1 and next_run <= now`;
+  2. send concurrently to all of that reminder's channels and write a `deliveries` log;
+  3. **one-time** reminders end after sending (`next_run = NULL`); **repeat / Cron** reminders recompute their next run in their time zone.
 
-**① 周期重复（interval）** — 最直观的「每隔多久一次」：
+<sub>所有时间以 UTC 秒存储，每条提醒带自己的时区；Worker 每分钟跑一次 scheduled()：查到期项 → 并发发往各渠道并记日志 → 一次性发完结束，周期/Cron 按时区算下次。</sub>
 
-- 从你设置的**开始时间**起，每隔「`N` × `单位`」触发一次；单位支持 **分钟 / 小时 / 天 / 周 / 月 / 年**，`N` 为正整数。
-- 预设：每天、每周、每两周、每月、每季度、**每 180 天**、每半年、**每年**；也可在「自定义间隔」里填任意数值，例如 `每 45 天`、`每 3 个月`、`每 2 年`。
-- 触发时刻对齐到**整分钟**（Cron 每分钟检查）。
-- 「天 / 周」按所选时区保持**本地钟点**不变（跨夏令时也不漂移）。
-- 「月 / 年」按日历推进：若开始日为 **29–31 号**，遇到天数不足的月份会自动取**该月最后一天**（如 1/31 → 2/28、6/30）。
+### Custom repeat rules
 
-**② 定时重复（按日历）** — 适合「每天 / 每周几 / 每月几号」的日历规则，**默认用可视化构建器，无需手写表达式**：
+**① Interval repeat** — the most intuitive "every so often": <br><sub>① 周期重复 — 最直观的「每隔多久一次」：</sub>
 
-- 选「频率（每天 / 每周 / 每月）」+「星期（可多选）/ 日期」+「时间」即可，界面实时显示人话描述，如 `工作日 09:00`、`每周一、三 20:00`、`每月 1 号 09:00`。
-- 需要更复杂规则时点「**切换到 Cron 表达式（高级）**」手写 5 段 Cron：`分 时 日 月 周`，支持 `*`（任意）`,`（列举）`-`（范围）`/`（步进）；例 `*/30 * * * *`＝每 30 分钟。星期 `0` / `7` 均表示周日。
+- From your **start time**, fire every "`N` × `unit`"; units are **minute / hour / day / week / month / year**, `N` a positive integer.
+- Presets: daily, weekly, biweekly, monthly, quarterly, **every 180 days**, semi-annually, **yearly**; or enter any value under "custom interval", e.g. `every 45 days`, `every 3 months`, `every 2 years`.
+- Triggers align to the **whole minute** (Cron checks each minute).
+- "Day / week" keep the **local wall-clock time** in the chosen zone (no drift across DST).
+- "Month / year" advance by calendar: if the start day is the **29th–31st**, months that are too short fall back to the **last day of that month** (e.g. 1/31 → 2/28, 6/30).
 
-> 经验法则：**固定间隔**（每 N 天/月/年）用「间隔重复」；**日历对齐**（星期几、每月几号）用「定时重复」。
+### Scheduled repeat (calendar-based)
 
-### 🧪 测试发送
+Best for "daily / certain weekdays / certain day-of-month" rules — uses a **visual builder by default, no expression to write**. Pick frequency + weekday(s)/date + time and the UI shows a plain-language description (e.g. `Weekdays 09:00`). For more complex rules, switch to **Cron (advanced)** and write the 5 fields `min hour day month weekday` (`*` `,` `-` `/` supported; `0`/`7` both mean Sunday).
 
-编辑提醒时点击「**测试发送**」，会立刻把你填写的**真实标题与内容**推送到所选渠道（无需先保存），并按渠道返回成功/失败与原因，便于联调。提醒列表里的 ⚡ 按钮同样会发送真实内容。
+<sub>定时重复（按日历）：适合「每天/每周几/每月几号」，默认用可视化构建器；复杂规则可切到 Cron 高级模式手写 5 段表达式。</sub>
+
+> Rule of thumb: use **interval repeat** for fixed gaps (every N days/months/years); use **scheduled repeat** for calendar alignment (weekdays, day-of-month). <br><sub>经验法则：固定间隔用「间隔重复」，日历对齐用「定时重复」。</sub>
+
+### 🧪 Test send
+
+While editing a reminder, click "**Test send**" to push your **actual title and body** to the selected channels right away (no need to save first), returning per-channel success/failure. The ⚡ button in the reminder list sends the real content too.
+
+<sub>测试发送：编辑时点「测试发送」即可把真实标题/内容立即推到所选渠道（无需先保存），并返回每渠道结果；列表里的 ⚡ 按钮同样发真实内容。</sub>
 
 ---
 
-## 🤖 自动化（模块化）
+## 🤖 Automations (modular)
 
-「**自动化**」是一个**模块平台**：每个能力是一个**模块**（module），用户创建模块的**计划实例**并按 Cron 在边缘运行。内置两个开箱即用的模块：
+<sub>自动化（模块化）</sub>
 
-| 模块 | 说明 |
+**Automations** is a **module platform**: each capability is a **module**, and you create **scheduled instances** of a module that run on Cron at the edge. Two modules ship out of the box:
+
+| Module | What it does |
 | --- | --- |
-| **DigitalPlat 域名续订** | 到期前（剩余少于 120 天）自动调用 DigitalPlat API 免费续订域名 1 年 |
-| **HTTP 健康检查** | 定时请求一个 URL，状态码异常 / 超时 / 关键字缺失即判为异常（可推送告警） |
+| **DigitalPlat domain renewal** | When a domain has <120 days left, calls the DigitalPlat API to free-renew it for 1 year. <br><sub>到期前（剩余少于 120 天）自动调用 API 免费续订 1 年。</sub> |
+| **HTTP health check** | Periodically requests a URL; flags bad status / timeout / missing keyword as unhealthy (can alert). <br><sub>定时请求 URL，状态码异常/超时/缺关键字即判异常，可告警。</sub> |
 
-每个自动化实例 = 选定模块 + 表单配置 + 运行计划（可视化 Cron）+ 结果通知渠道。运行写入「运行记录」，有结果/失败时通过所选渠道通知你；模块的敏感字段（如 Token）只以脱敏形式回显。
+Each automation = a chosen module + form config + run schedule (visual Cron) + result notification channel. Runs are written to a "run history" and notify you via the selected channel on result/failure; sensitive module fields (e.g. tokens) are echoed back masked.
 
-### ✍️ A. 在浏览器里写自定义模块（无需部署）
+<sub>每个自动化 = 模块 + 表单配置 + 运行计划（可视化 Cron）+ 结果通知渠道；运行写入「运行记录」，有结果/失败时通知你；敏感字段脱敏回显。</sub>
 
-面向有编程能力的用户：新建自动化 → 选「**自定义代码**」→ 在代码编辑器里写 JS，保存即用。
+### ✍️ A. Write a custom module in the browser (no deploy)
 
-- 运行在 **QuickJS（编译为 WASM）沙箱**里——Workers 禁止 `eval`/运行时编译 WASM，而 QuickJS 引擎在构建时编译、运行时*解释*你的 JS 字符串，既可行又被沙箱隔离。
-- 沙箱内可用：`config`（你填的配置）、`console.log()`、`await fetchJson/fetchText/httpRequest(url, opts)`、`await sleep(ms)`。
-- 返回 `{ status, summary, items:[{item,action,detail}] }` 或字符串。
-- 限制：单次运行 ≤15 秒（防死循环）、64MB 内存；只能通过上述 API 访问外部。键名含 `token/secret/key/password` 的配置值会脱敏保存。
+For users who can code: New automation → choose "**Custom code**" → write JS in the editor, save, done. <br><sub>面向会写代码的用户：新建自动化 → 选「自定义代码」→ 写 JS 保存即用。</sub>
+
+- Runs in a **QuickJS (compiled to WASM) sandbox** — Workers forbid `eval`/runtime-compiled WASM, but the QuickJS engine is compiled at build time and *interprets* your JS string at runtime, which is both allowed and sandboxed.
+- Available inside: `config` (your settings), `console.log()`, `await fetchJson/fetchText/httpRequest(url, opts)`, `await sleep(ms)`.
+- Return `{ status, summary, items:[{item,action,detail}] }` or a string.
+- Limits: ≤15 s per run (anti-loop), 64 MB; outbound only via the APIs above. Config keys containing `token/secret/key/password` are stored masked.
+
+<sub>运行在 QuickJS（WASM）沙箱里（Workers 禁 eval/运行时编译 WASM，QuickJS 在构建时编译、运行时解释你的 JS）；沙箱内可用 config、console.log、fetchJson/fetchText/httpRequest、sleep；单次 ≤15 秒、64MB；含 token/secret/key/password 的配置脱敏保存。</sub>
 
 ```js
-// 示例：监控 GitHub 仓库 star 数
+// Example: monitor a GitHub repo's star count
 const repo = await fetchJson("https://api.github.com/repos/" + config.repo);
 return {
   status: "success",
@@ -246,20 +268,20 @@ return {
 };
 ```
 
-> ⚙️ QuickJS 引擎以 WASM 形式随 Worker 一起部署（已 vendored 到 `worker/src/automations/quickjs.wasm`，约 0.5MB）。升级 quickjs-emscripten 后用 `npm run vendor:wasm` 重新拷贝。
+> ⚙️ The QuickJS engine ships as WASM with the Worker (vendored to `worker/src/automations/quickjs.wasm`, ~0.5 MB). After upgrading quickjs-emscripten, run `npm run vendor:wasm` to recopy it. <br><sub>⚙️ QuickJS 引擎以 WASM 随 Worker 部署（已 vendored，约 0.5MB）；升级后用 npm run vendor:wasm 重拷。</sub>
 
-### ✍️ B. 文件式模块（内置模块的写法，类型安全）
+### ✍️ B. File-based modules (how built-ins are written, type-safe)
 
-1. 复制 [`worker/src/automations/modules/TEMPLATE.ts`](worker/src/automations/modules/TEMPLATE.ts) 为 `my-module.ts`。
-2. 实现接口（`key` / `label` / `fields` / `run`，可选 `test`）：
+1. Copy [`worker/src/automations/modules/TEMPLATE.ts`](worker/src/automations/modules/TEMPLATE.ts) to `my-module.ts`.
+2. Implement the interface (`key` / `label` / `fields` / `run`, optional `test`):
    ```ts
    const myModule: AutomationModule = {
      key: "my_module",
-     label: "我的模块",
+     label: "My module",
      description: "…",
      fields: [{ key: "api_key", label: "API Key", required: true, secret: true }],
      async run(ctx) {
-       // ctx.config 是用户填的表单值；ctx.log() 记录日志
+       // ctx.config holds the user's form values; ctx.log() records logs
        const res = await fetch("https://api.example.com", {
          headers: { Authorization: `Bearer ${ctx.config.api_key}` },
        });
@@ -268,116 +290,118 @@ return {
    };
    export default myModule;
    ```
-3. 在 [`worker/src/automations/registry.ts`](worker/src/automations/registry.ts) 里 import 并注册它。
-4. `npm run deploy` —— 新模块会自动出现在「自动化 → 新建自动化」的模块选择里。
+3. Import and register it in [`worker/src/automations/registry.ts`](worker/src/automations/registry.ts).
+4. `npm run deploy` — the new module appears under "Automations → New automation".
 
-`fields` 声明的表单会被控制台自动渲染（含 `secret` 脱敏、`number`/`textarea` 类型），无需改前端。
+The form declared by `fields` is rendered automatically by the console (incl. `secret` masking, `number`/`textarea` types) — no frontend changes needed. <br><sub>fields 声明的表单由控制台自动渲染（含脱敏、number/textarea 类型），无需改前端。</sub>
 
-### DigitalPlat 域名续订 · 使用与注意
+### DigitalPlat domain renewal · usage & notes
 
-1. 在 [dash.domain.digitalplat.org/dashboard/api/keys](https://dash.domain.digitalplat.org/dashboard/api/keys) 创建 API Token（形如 `dp_live_…`）。
-2. 新建自动化 → 选「DigitalPlat 域名续订」→ 填 Token、提前续订天数（默认 **120**）、运行计划（建议**每天**）。
-3. 卡片上「测试连接」验证 Token，「立即运行」按窗口逻辑跑一次。
+1. Create an API Token (like `dp_live_…`) at [dash.domain.digitalplat.org/dashboard/api/keys](https://dash.domain.digitalplat.org/dashboard/api/keys).
+2. New automation → "DigitalPlat domain renewal" → enter the token, advance-renew days (default **120**), and a schedule (daily recommended).
+3. "Test connection" verifies the token; "Run now" runs once with the window logic.
 
-> 📌 **续订窗口（重要）**：DigitalPlat 免费续费**仅在「剩余少于 120 天」时开放**，窗口外调用会被服务端拒绝（500）。所以默认到期前 **120 天内**才续；未进入窗口的域名显示「还有 X 天到期，未进入续订窗口」。设为**每天运行**即可，窗口一开自动续 1 年。
+> 📌 **Renewal window (important)**: DigitalPlat free renewal only opens when **<120 days remain**; calls outside the window are rejected (500). So it renews only within **120 days** of expiry; domains not yet in the window show "X days left, not in the renewal window". Set it to run **daily** and it auto-renews for 1 year as soon as the window opens. <br><sub>📌 续订窗口（重要）：DigitalPlat 免费续费仅在「剩余少于 120 天」时开放，窗口外会被拒（500）。设为每天运行即可，窗口一开自动续 1 年。</sub>
 
-> ⚠️ **Cloudflare 风控**：DigitalPlat 的 API 站点开了 Cloudflare Bot 拦截，本模块带**浏览器 UA + 客户端提示头**通过其（基于 UA 的）挑战——已在 Worker 实测拿到正常 JSON。若日后收紧导致被挑战，会**优雅报错**而非静默失败。
+> ⚠️ **Cloudflare bot protection**: DigitalPlat's API site has Cloudflare bot blocking; this module passes its UA-based challenge with a browser UA + client hints (verified working on the Worker). If it tightens later, the module **fails gracefully** rather than silently. <br><sub>⚠️ DigitalPlat 的 API 开了 Cloudflare Bot 拦截，本模块带浏览器 UA + 客户端提示头通过其挑战；若日后收紧会优雅报错而非静默失败。</sub>
 
-### 🌗 主题
+### 🌗 Theme
 
-控制台默认 **浅色模式**，右上角点击即可切换 **深色模式**，选择会记忆在浏览器本地（`localStorage`）。
+The console defaults to **light mode**; click the top-right to switch to **dark mode**, remembered in the browser (`localStorage`). <br><sub>控制台默认浅色，右上角可切深色，选择记忆在本地。</sub>
 
 ---
 
-## 🔄 更新到最新版本
+## 🔄 Update to the latest version
 
-更新分两件事：**① 更新代码**（拿到新功能）和 **② 数据库迁移**（仅当新版新增了表 / 字段时）。
+<sub>更新到最新版本 — 分两件事：① 更新代码 ② 数据库迁移（仅新版新增表/字段时）</sub>
 
-> ✅ 本次「**Bark 渠道 + 内置消息模板**」更新**只需更新代码，无需迁移**（模板与 Bark 配置都存在渠道的 `config` 里，不涉及新表/字段）。
+Updating is two things: **① update the code** (get new features) and **② database migration** (only when a new version adds tables/columns).
 
-### ① 更新代码
+### ① Update the code
 
-原理：**让 Cloudflare 连接的那个仓库拿到最新代码，它就会自动重新构建并上线。** 按你的部署方式选一种 👇
+The idea: **get the repo that Cloudflare is connected to onto the latest code, and it rebuilds and redeploys automatically.** Pick the path matching how you deployed 👇
 
-#### 方式 A · 你用「一键部署」按钮搭的（独立副本仓库）
+#### A · You used the one-click button (standalone copy repo)
 
-一键部署在你账户下创建了一个**独立副本仓库**（名字形如 `cloud-reminder-xxxx`），Cloudflare 连着它自动构建。它**不是 fork**，用不了 GitHub 的「Sync fork」，用命令行把官方最新代码同步过去即可：
+The button created a **standalone copy repo** in your account (named like `cloud-reminder-xxxx`) that Cloudflare auto-builds. It is **not a fork**, so GitHub's "Sync fork" doesn't apply — pull upstream from the command line:
 
 ```bash
-# 把 <你的用户名>/<你的副本仓库> 换成你账户里那个仓库
-git clone https://github.com/<你的用户名>/<你的副本仓库>.git
-cd <你的副本仓库>
+# Replace <you>/<your-copy-repo> with the repo in your account
+git clone https://github.com/<you>/<your-copy-repo>.git
+cd <your-copy-repo>
 git remote add upstream https://github.com/sinpoce/cloud-reminder.git
 git fetch upstream
-git reset --hard upstream/main      # 用官方最新版覆盖（你没改过仓库代码时最干净、安全）
-git push --force origin main        # 推送后 Cloudflare 自动重新构建并上线（约 1–3 分钟）
+git reset --hard upstream/main      # overwrite with the official latest (cleanest if you never edited the repo)
+git push --force origin main        # after pushing, Cloudflare rebuilds and ships (~1–3 min)
 ```
 
-> 你的渠道 / 提醒数据都存在 Cloudflare 的 **D1** 里，**只更新代码不会动数据**。
-> 如果你在仓库里改过代码（如加了自定义模块），把 `reset --hard` 换成 `git merge upstream/main` 并手动处理冲突。
+> Your channels / reminders live in Cloudflare **D1**; updating only the code does not touch data. If you edited the repo (e.g. added a custom module), use `git merge upstream/main` instead of `reset --hard` and resolve conflicts. <br><sub>你的数据都在 D1 里，只更新代码不动数据；若你改过仓库代码，把 reset --hard 换成 git merge upstream/main 并手动处理冲突。</sub>
 
-#### 方式 B · 想要"以后在网页上一键更新"？改用 Fork 搭建（推荐）
+#### B · Want one-click web updates later? Use a Fork (recommended)
 
-如果你还没搭、或愿意重搭一次，用 **Fork** 是最省心的：以后更新只需在网页上点一下，无需命令行。
+If you haven't set up yet (or are willing to redo it once), a **Fork** is the easiest — future updates are a single click on the web, no command line.
 
-1. 点本仓库右上角 **Fork**，复刻到你的账户（这是**真正的 fork**，与上游有关联）。
-2. Cloudflare Dashboard → **Workers & Pages → Create → Workers → Connect to Git**，选你刚 fork 的仓库；Cloudflare 会读取根目录 [`wrangler.jsonc`](wrangler.jsonc)，自动创建 D1、设置每分钟 Cron 与构建命令。
-3. 以后官方发布新版时，打开你的 fork 页面 → 点 **「Sync fork」→ Update branch**；Cloudflare 检测到这次更新会**自动重新部署**。全程网页操作。
+1. Click **Fork** at the top right of this repo (a **real fork**, linked to upstream).
+2. Cloudflare Dashboard → **Workers & Pages → Create → Workers → Connect to Git**, select your fork; Cloudflare reads the root [`wrangler.jsonc`](wrangler.jsonc) and auto-creates D1, the per-minute Cron, and the build command.
+3. When a new version ships, open your fork → **"Sync fork" → Update branch**; Cloudflare detects the update and **redeploys automatically**. All on the web.
 
-#### 方式 C · 你用本地 `wrangler deploy` 部署的
+<sub>想以后网页一键更新就用 Fork：Fork 本仓库 → Cloudflare 连接你的 fork（自动建 D1、设 Cron）→ 以后点「Sync fork」即自动重新部署。</sub>
+
+#### C · You deployed locally with `wrangler deploy`
 
 ```bash
-git pull                                          # 拉取官方最新代码
+git pull
 npm --prefix worker install && npm --prefix web install
-wrangler deploy                                   # 重新构建并部署
+wrangler deploy
 ```
 
-### ② 数据库迁移（仅新版新增表 / 字段时）
+### ② Database migration (only when a new version adds tables/columns)
 
-**全新部署无需操作**（`schema.sql` 已最新，表会在首次访问时自动创建）。若你从更老的版本升级，按需对线上库执行迁移：
+**Fresh deploys need nothing** (`schema.sql` is current; tables auto-create on first visit). Upgrading from an older version, run the migrations you need against the live DB:
 
 ```bash
 cd worker
-wrangler d1 execute cloud_reminder --remote --file=./migrations/0001_add_interval.sql       # interval 周期重复
-wrangler d1 execute cloud_reminder --remote --file=./migrations/0002_add_automations.sql    # automations 自动化
-wrangler d1 execute cloud_reminder --remote --file=./migrations/0003_add_custom_modules.sql # 自定义代码模块
-wrangler d1 execute cloud_reminder --remote --file=./migrations/0004_add_settings.sql       # 设置（改密码 / 默认时区）
+wrangler d1 execute cloud_reminder --remote --file=./migrations/0001_add_interval.sql       # interval repeat
+wrangler d1 execute cloud_reminder --remote --file=./migrations/0002_add_automations.sql    # automations
+wrangler d1 execute cloud_reminder --remote --file=./migrations/0003_add_custom_modules.sql # custom code modules
+wrangler d1 execute cloud_reminder --remote --file=./migrations/0004_add_settings.sql       # settings (password / default TZ)
 ```
 
-> 这些迁移都是幂等的（`IF NOT EXISTS`），重复执行安全。
+> These migrations are idempotent (`IF NOT EXISTS`); re-running them is safe. <br><sub>这些迁移是幂等的（IF NOT EXISTS），重复执行安全。</sub>
 
 ---
 
-## 💻 本地开发
+## 💻 Local development
+
+<sub>本地开发 — 前后端分开跑；生产是同一个 Worker 一起部署</sub>
 
 ```bash
-# 终端 A — 启动 Worker（含本地 D1，表会自动创建）
+# Terminal A — start the Worker (local D1, tables auto-create)
 cd worker
-cp .dev.vars.example .dev.vars     # 可选：本地的 ADMIN_PASSWORD / JWT_SECRET
+cp .dev.vars.example .dev.vars     # optional: local ADMIN_PASSWORD / JWT_SECRET
 npm install
 npm run dev                        # http://localhost:8787
 
-# 终端 B — 启动控制台
+# Terminal B — start the console
 cd web
 npm install
-npm run dev                        # http://localhost:5173 （/api 自动代理到 8787）
+npm run dev                        # http://localhost:5173 (/api proxied to 8787)
 ```
 
-打开 http://localhost:5173 ，用密码 **`admin`** 登录（或 `.dev.vars` 里设的密码）。本地开发前后端分开跑；生产是同一个 Worker 一起部署。
+Open http://localhost:5173 and log in with **`admin`** (or the password in `.dev.vars`).
 
-> 想本地验证 Cron 派发？运行
-> `curl "http://localhost:8787/cdn-cgi/handler/scheduled"` 手动触发一次调度。
+> Want to test Cron dispatch locally? Run `curl "http://localhost:8787/cdn-cgi/handler/scheduled"` to trigger one dispatch. <br><sub>想本地验证 Cron 派发？运行上面的 curl 手动触发一次调度。</sub>
 
 ---
 
-## 🔐 安全说明
+## 🔐 Security notes
 
-- **默认密码是 `admin`**，部署后**请第一时间在「设置」里修改**（改后以 PBKDF2 哈希存入 D1，明文不落库）。会话 JWT 密钥首次运行自动生成并存于 D1，也可用 `ADMIN_PASSWORD` / `JWT_SECRET` 两个 Secret 覆盖。
-- 渠道里的 Token / Webhook、自定义模块里的密钥等敏感字段保存在你自己的 D1 中，读取接口会做**脱敏**返回。
-- 统一部署下控制台与 API **同源**，不涉及跨域；`ALLOWED_ORIGINS="*"` 因此是安全的（仅当你把前端拆到别的域名时才需收紧）。
-- 自定义代码模块运行在 **QuickJS WASM 沙箱**里（15 秒/64MB 上限、仅能用受限 API），且只有你自己能创建——单管理员模型，适合个人 / 小团队自托管。
+<sub>安全说明</sub>
 
+- **The default password is `admin`** — change it under *Settings* right after deploying (stored as a PBKDF2 hash in D1; plaintext is never persisted). The session JWT key is auto-generated on first run and stored in D1, or override it with the `ADMIN_PASSWORD` / `JWT_SECRET` secrets. <br><sub>默认密码 `admin`，部署后请第一时间在「设置」里改（PBKDF2 哈希存于 D1，明文不落库）；会话密钥首次运行自动生成，也可用 Secret 覆盖。</sub>
+- Sensitive fields — channel tokens/webhooks, custom-module secrets — are stored in your own D1 and returned **masked** by read endpoints. <br><sub>渠道 Token/Webhook、模块密钥等敏感字段存在你自己的 D1 中，读取接口脱敏返回。</sub>
+- In the unified deploy the console and API are **same-origin**, so there is no cross-origin; `ALLOWED_ORIGINS="*"` is therefore safe (only tighten it if you split the frontend onto another domain). <br><sub>统一部署下控制台与 API 同源，不涉及跨域，ALLOWED_ORIGINS="*" 因此是安全的（仅当前端拆到别的域名时才需收紧）。</sub>
+- Custom code modules run in the **QuickJS WASM sandbox** (15 s / 64 MB caps, restricted APIs) and only you can create them — a single-admin model suited to personal / small-team self-hosting. <br><sub>自定义代码模块运行在 QuickJS WASM 沙箱里（15秒/64MB、受限 API），且只有你能创建 —— 单管理员模型，适合个人/小团队自托管。</sub>
 
-
-<p align="center"><sub>Built for the edge · 单个 Cloudflare Worker（Static Assets + D1 + Cron）</sub></p>
+<p align="center"><sub>Built for the edge · a single Cloudflare Worker (Static Assets + D1 + Cron)</sub></p>
 <p align="center"><b>SINPOCE</b></p>
